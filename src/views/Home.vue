@@ -15,7 +15,7 @@ export default {
     name: "Home",
     data() {
         return {
-            host: "",
+            host: "127.0.0.1",
         };
     },
     methods: {
