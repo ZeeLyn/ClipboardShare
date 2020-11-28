@@ -2,12 +2,15 @@ const fork = require('child_process').fork;
 const WebSocketClientProcess = fork('./src/websocket_client/client.js');
 
 WebSocketClientProcess.on("message", function (msg) {
+    console.warn(msg);
     switch (msg.type) {
-        case "clipboard-text-changed":
+        case "clipboard-text":
+            console.warn("clipboard-text-changed");
             clipboard.writeText(msg.body);
 
             break;
-        case "clipboard-image-changed":
+        case "clipboard-image":
+            console.warn("clipboard-image-changed");
             var buffer = Buffer.from(msg.body);
             var img = nativeImage.createFromBuffer(buffer);
             clipboard.writeImage(img);

@@ -3,12 +3,12 @@ class WebSocketClient {
         var socket = require('socket.io-client')(`http://${host}:${port}`);
         console.warn("连接到：", `http://${host}:${port}`);
         socket.on("clipboard-text-changed", data => {
-            console.warn("收到消息->", data);
+            //console.warn("收到消息->", data);
             process.send({ type: "clipboard-text", body: data });
         });
 
         socket.on("clipboard-image-changed", data => {
-            console.warn("收到图片消息->", data);
+            //console.warn("收到图片消息->", data);
             // var buffer = Buffer.from(data);
             // var img = nativeImage.createFromBuffer(buffer);
             //process.send(img);
