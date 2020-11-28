@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-var server = require('http').createServer(app).listen(9990);
+var server = require('http').createServer(app).listen(9990, "192.168.31.2",);
 var io = require('socket.io')(server);
 var clients = [];
 io.on("connection", socket => {

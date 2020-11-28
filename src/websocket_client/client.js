@@ -1,7 +1,7 @@
 class WebSocketClient {
     Connect(host, port) {
         var socket = require('socket.io-client')(`http://${host}:${port}`);
-
+        console.warn("连接到：", `http://${host}:${port}`);
         socket.on("clipboard-text-changed", data => {
             console.warn("收到消息->", data);
             process.send({ type: "clipboard-text", body: data });

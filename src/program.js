@@ -31,11 +31,11 @@ export default {
             }
         });
 
-        WebSocketServerHandlers.StopServer();
+        //WebSocketServerHandlers.StopServer();
 
         ipcMain.on("connect_to_server", (event, arg) => {
             console.warn("host:" + arg);
-            ClientHandlers.Connection(arg, 9999);
+            //ClientHandlers.Connection(arg, 9999);
             WebSocketClientHandlers.Connection(arg, 9990);
         });
     }
