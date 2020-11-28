@@ -6,7 +6,7 @@ const WebSocketClientHandlers = require('./websocket_client');
 const clipboardWatcher = require('electron-clipboard-watcher');
 export default {
     Init: () => {
-        ServerHandlers.StartServer("0.0.0.0", 9999);
+        //ServerHandlers.StartServer("0.0.0.0", 9999);
         // setTimeout(function () {
         //     ClientHandlers.Connection("127.0.0.1", 9999);
         // }, 3000);
