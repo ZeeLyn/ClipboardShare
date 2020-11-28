@@ -23,15 +23,16 @@ class TCPServer {
             //console.warn("join:", socket);
 
             socket.on('data', data => {
-                var msg = JSON.parse(data.toString());
-                console.warn("收到消息：", msg);
-                //socket.write('you said:' + data.toString());
-                switch (msg.type) {
-                    case "clipboard-text":
-                    case "clipboard-image":
-                        process.send(msg);
-                        break;
-                }
+                console.warn("收到数据：", data)
+                // var msg = JSON.parse(data.toString());
+                // console.warn("收到消息：", msg);
+                // //socket.write('you said:' + data.toString());
+                // switch (msg.type) {
+                //     case "clipboard-text":
+                //     case "clipboard-image":
+                //         process.send(msg);
+                //         break;
+                // }
             });
 
             socket.on('close', () => {

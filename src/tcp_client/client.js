@@ -1,4 +1,4 @@
-const { createPublicKey } = require('crypto');
+// const { createPublicKey } = require('crypto');
 var net = require('net');
 
 class TCPClient {
@@ -21,7 +21,7 @@ class TCPClient {
 
     SendMessage(msg) {
         this.clients.forEach(client => {
-            client.scoket.write(JSON.stringify(msg));
+            client.scoket.write(Buffer.from(JSON.stringify(msg)));
         });
     }
 }
