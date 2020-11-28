@@ -1,5 +1,6 @@
 const fork = require('child_process').fork;
 const WebSocketClientProcess = fork('./src/websocket_client/client.js');
+const { clipboard, nativeImage } = require('electron');
 
 WebSocketClientProcess.on("message", function (msg) {
     console.warn(msg);
