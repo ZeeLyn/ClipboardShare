@@ -8,8 +8,10 @@ WebSocketClientProcess.on("message", function (msg) {
             clipboard.writeText(msg.body);
             break;
         case "clipboard-image":
-            var buffer = Buffer.from(msg.body, "base64");
-            var img = nativeImage.createFromBuffer(buffer);
+            // var buffer = Buffer.from(msg.body, "base64");
+            // var img = nativeImage.createFromBuffer(buffer);
+
+            var img = nativeImage.createFromPath(msg.body);
             clipboard.writeImage(img, "clipboard");
             break;
     }
@@ -17,8 +19,8 @@ WebSocketClientProcess.on("message", function (msg) {
 
 
 module.exports = {
-    Connection: (host, port) => {
-        WebSocketClientProcess.send({ type: "Connect", payload: { host, port } });
+    Connection: (host, port, token = "") => {
+        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, token } });
     },
     SendMessage: (message) => {
         WebSocketClientProcess.send({ type: "SendMessage", payload: { message } });
