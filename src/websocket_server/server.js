@@ -40,12 +40,15 @@ process.on('message', (m) => {
 
                         break;
                     case "clipboard-image":
+                        io.to(shareGroup).emit("clipboard-image-changed", m.payload.msg.body);
+                        break;
+                    case "send-file":
                         //console.warn(m.payload.msg.body);
                         var buffer = Buffer.from(m.payload.msg.body, "base64");
                         //io.to(shareGroup).emit("clipboard-image-changed", m.payload.msg.body);
                         clients.forEach(client => {
                             var _stream = ss.createStream();
-                            ss(client).emit("clipboard-image-changed", _stream, { name: "clipboard.png" });
+                            ss(client).emit("clipboard-image-changed", _stream, { name: "clipboard-image.png" });
                             // console.warn(m.payload.msg.body.toString());
                             // 创建一个bufferstream
                             var bufferStream = new Stream.PassThrough();

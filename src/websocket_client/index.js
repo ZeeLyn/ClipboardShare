@@ -8,10 +8,9 @@ WebSocketClientProcess.on("message", function (msg) {
             clipboard.writeText(msg.body);
             break;
         case "clipboard-image":
-            // var buffer = Buffer.from(msg.body, "base64");
-            // var img = nativeImage.createFromBuffer(buffer);
-
-            var img = nativeImage.createFromPath(msg.body);
+            var buffer = Buffer.from(msg.body, "base64");
+            var img = nativeImage.createFromBuffer(buffer);
+            //var img = nativeImage.createFromPath(msg.body);
             clipboard.writeImage(img, "clipboard");
             break;
     }

@@ -26,16 +26,31 @@ class WebSocketClient {
         this.socket.on("clipboard-image-changed", data => {
             process.send({ type: "clipboard-image", body: data });
         });
-
+        var _ = this;
         ss(this.socket).on("clipboard-image-changed", (stream, data) => {
             console.warn("client,send-image：", data);
             var filename = path.basename(data.name);
-            stream.pipe(fs.createWriteStream(filename));
+            var _stream = ss.createStream();
+            stream.pipe(_stream);
+            // const instance = Buffer.from(stream);
+            // const base64 = instance.toString('base64')
+            // console.warn(base64);
+            _.StreamToBuffer(_stream).then(buffer => {
+                console.warn(buffer);
+            });
             process.send({ type: "clipboard-image", body: filename });
         });
 
     }
 
+    StreamToBuffer(stream) {
+        return new Promise((resolve, reject) => {
+            let buffers = [];
+            stream.on('error', reject);
+            stream.on('data', (data) => buffers.push(data));
+            stream.on('end', () => resolve(Buffer.concat(buffers)));
+        });
+    }
 
 }
 
