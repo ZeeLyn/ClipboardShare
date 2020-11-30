@@ -17,7 +17,19 @@
                         v-model="token"
                     />
                 </div>
-                <input type="button" value="保存" @click="SetToken" />
+                <div class="group">
+                    <label>接收文件保存目录:</label>
+                    <div>
+                        <input
+                            type="text"
+                            placeholder="请选择接收文件默认保存目录"
+                            v-model="folder"
+                            readonly="readonly"
+                        />
+                        <span @click="OnChooseFolder">选择</span>
+                    </div>
+                </div>
+                <input type="button" value="保存" @click="SaveConfig" />
             </div>
         </div>
     </div>
@@ -38,6 +50,7 @@ export default {
             host: "127.0.0.1",
             showInit: false,
             token: "",
+            folder: "",
         };
     },
     mounted() {
@@ -48,20 +61,32 @@ export default {
         this.token = this.conf.token;
         if (this.token) return;
         this.showInit = true;
+        ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
+            this.folder = folder;
+        });
     },
     methods: {
         connect_to_server() {
             console.warn(this.host);
             ipcRenderer.send("connect_to_server", this.host, "hello");
         },
-        SetToken() {
+        SaveConfig() {
             if (!this.token) {
                 alert("请输入秘钥！");
                 return;
             }
+            if (!this.folder) {
+                alert("请选择文件默认保存目录！");
+                return;
+            }
             this.conf.token = this.token;
+            this.conf.save_file_dir = this.folder;
             config.ModifyConfig(this.conf);
             this.showInit = false;
+            ipcRenderer.send("init-completed");
+        },
+        OnChooseFolder() {
+            ipcRenderer.send("ChooseSaveFileFolder");
         },
     },
 };
@@ -85,10 +110,26 @@ export default {
     border-radius: 20px;
     display: flex;
     flex-direction: column;
+    width: 400px;
 }
 .mask .container .group {
     display: flex;
     flex-direction: column;
+    margin-bottom: 15px;
+}
+.mask .container .group div {
+    display: flex;
+}
+.mask .container .group div input {
+    flex: 1;
+}
+.mask .container .group div span {
+    margin: 0 0 0 5px;
+    display: flex;
+    align-items: center;
+    border: 1px #ccc solid;
+    padding: 0 5px;
+    cursor: pointer;
 }
 .mask .container .group label {
     font-size: 12px;

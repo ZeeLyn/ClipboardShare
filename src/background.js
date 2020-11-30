@@ -6,7 +6,7 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import config from './lib/config.js'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-import init from "./program.js";
+import program from "./program.js";
 var suspensionWindow = null;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -67,8 +67,9 @@ app.on('ready', async () => {
 		}
 	}
 	createWindow();
-	await createSuspensionWindow();
-	console.warn(init.Init(mainWin, suspensionWindow));
+	createSuspensionWindow();
+
+	program.Init(mainWin, suspensionWindow)
 
 })
 
@@ -91,33 +92,34 @@ if (isDevelopment) {
 
 
 async function createSuspensionWindow() {
+
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
 		width: 1000, height: 500,
 		type: "toolbar",
 		frame: true,//要创建无边框窗口
 		resizable: false,
-		show: true,
+		show: configs.token ? true : false,
 		webPreferences: {
 			nodeIntegration: true
 		},
 		transparent: false,
-		alwaysOnTop: true
+		alwaysOnTop: true,
+		skipTaskbar: false
 	});
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
-		console.warn(process.env.WEBPACK_DEV_SERVER_URL + "/senfile");
-
 		suspensionWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile")
 
 	} else {
 		// Load the index.html when not in development
 		suspensionWindow.loadURL('app://./index.html/#/sendfile')
 	}
-	suspensionWindow.once('ready-to-show', () => {
-		suspensionWindow.show()
-	});
-	if (!process.env.IS_TEST) suspensionWindow.webContents.openDevTools()
+	// suspensionWindow.once('ready-to-show', () => {
+	// 	suspensionWindow.show()
+	// });
+	if (!process.env.IS_TEST)
+		suspensionWindow.webContents.openDevTools()
 
 
 
@@ -128,12 +130,13 @@ async function createSuspensionWindow() {
 	// win.setPosition(size.width - winSize[0], 100);
 
 }
-
+//将文件拖入悬浮窗
 ipcMain.on("drag_in_files", (event, arg) => {
 	if (suspensionWindow) {
 		//suspensionWindow.setSize(300, 300, true);
 	}
 });
+//选择文件保存目录
 ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 	dialog.showOpenDialog({ properties: ["openDirectory"] }).then(e => {
 		console.warn(e);
@@ -141,4 +144,8 @@ ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 			return;
 		mainWin.webContents.send("OnChangeSaveFileFolder", e.filePaths[0]);
 	});
+});
+//基本信息填写完成
+ipcMain.on("init-completed", (event, arg) => {
+	suspensionWindow.show();
 });

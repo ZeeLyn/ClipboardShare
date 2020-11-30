@@ -28,8 +28,8 @@ export default {
         this.nick_name = conf.nick_name;
         this.folder = conf.save_file_dir;
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
-            console.warn(folder);
-            console.warn(conf);
+            // console.warn(folder);
+            // console.warn(conf);
             conf.save_file_dir = folder;
             config.ModifyConfig(conf);
         });

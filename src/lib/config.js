@@ -12,7 +12,8 @@ export default {
             var config = {
                 uid: UUID.v1(),
                 nick_name: os.hostname(),
-                save_file_dir: path.resolve("./")
+                save_file_dir: path.resolve("./"),
+                token: ""
             };
             fs.writeFileSync(configFileName, JSON.stringify(config));
             return config;
