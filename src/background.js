@@ -1,26 +1,28 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, screen, ipcMain, dialog } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+import config from './lib/config.js'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 import init from "./program.js";
-
+var suspensionWindow = null;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
 	{ scheme: 'app', privileges: { secure: true, standard: true } }
 ])
-
+var mainWin = null;
+var configs = config.GetConfig();
 async function createWindow() {
 	// Create the browser window.
-	const win = new BrowserWindow({
-		width: 800,
-		height: 600,
+	const win = mainWin = new BrowserWindow({
+		width: 2000,
+		height: 800,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-			nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION
+			nodeIntegration: true
 		}
 	})
 
@@ -41,6 +43,7 @@ app.on('window-all-closed', () => {
 	// On macOS it is common for applications and their menu bar
 	// to stay active until the user quits explicitly with Cmd + Q
 	if (process.platform !== 'darwin') {
+		suspensionWindow.destroy();
 		app.quit()
 	}
 })
@@ -64,7 +67,9 @@ app.on('ready', async () => {
 		}
 	}
 	createWindow();
-	console.warn(init.Init());
+	await createSuspensionWindow();
+	console.warn(init.Init(mainWin, suspensionWindow));
+
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -72,12 +77,68 @@ if (isDevelopment) {
 	if (process.platform === 'win32') {
 		process.on('message', (data) => {
 			if (data === 'graceful-exit') {
+				suspensionWindow.destroy();
 				app.quit()
 			}
 		})
 	} else {
 		process.on('SIGTERM', () => {
+			suspensionWindow.destroy();
 			app.quit()
 		})
 	}
 }
+
+
+async function createSuspensionWindow() {
+	suspensionWindow = new BrowserWindow({
+		title: "发送文件",
+		width: 1000, height: 500,
+		type: "toolbar",
+		frame: true,//要创建无边框窗口
+		resizable: false,
+		show: true,
+		webPreferences: {
+			nodeIntegration: true
+		},
+		transparent: false,
+		alwaysOnTop: true
+	});
+
+	if (process.env.WEBPACK_DEV_SERVER_URL) {
+		console.warn(process.env.WEBPACK_DEV_SERVER_URL + "/senfile");
+
+		suspensionWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile")
+
+	} else {
+		// Load the index.html when not in development
+		suspensionWindow.loadURL('app://./index.html/#/sendfile')
+	}
+	suspensionWindow.once('ready-to-show', () => {
+		suspensionWindow.show()
+	});
+	if (!process.env.IS_TEST) suspensionWindow.webContents.openDevTools()
+
+
+
+	// const size = screen.getPrimaryDisplay().workAreaSize;   //获取显示器的宽高
+	// const winSize = win.getSize();  //获取窗口宽高
+
+	// //设置窗口的位置 注意x轴要桌面的宽度 - 窗口的宽度
+	// win.setPosition(size.width - winSize[0], 100);
+
+}
+
+ipcMain.on("drag_in_files", (event, arg) => {
+	if (suspensionWindow) {
+		//suspensionWindow.setSize(300, 300, true);
+	}
+});
+ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
+	dialog.showOpenDialog({ properties: ["openDirectory"] }).then(e => {
+		console.warn(e);
+		if (e.canceled)
+			return;
+		mainWin.webContents.send("OnChangeSaveFileFolder", e.filePaths[0]);
+	});
+});

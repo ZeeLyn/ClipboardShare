@@ -6,7 +6,7 @@ const WebSocketServerHandlers = require('./websocket_server');
 const WebSocketClientHandlers = require('./websocket_client');
 const clipboardWatcher = require('electron-clipboard-watcher');
 export default {
-    Init: () => {
+    Init: (minWin, fileWin) => {
         //ServerHandlers.StartServer("0.0.0.0", 9999);
         // setTimeout(function () {
         //     ClientHandlers.Connection("127.0.0.1", 9999);
@@ -34,12 +34,20 @@ export default {
             }
         });
 
-        //WebSocketServerHandlers.StopServer();
-
-        ipcMain.on("connect_to_server", (event, arg) => {
-            console.warn("host:" + arg);
+        WebSocketServerHandlers.SetWindow(minWin, fileWin);
+        ipcMain.on("connect_to_server", (event, host, name) => {
+            console.warn("host:" + host);
             //ClientHandlers.Connection(arg, 9999);
-            WebSocketClientHandlers.Connection(arg, 9990, "123");
+            WebSocketClientHandlers.Connection(host, 9990, "123", name);
+        });
+
+        ipcMain.on("send_files", (event, files, to) => {
+            console.warn("发送文件", files, to);
+            WebSocketServerHandlers.SendMessage({
+                type: "send-files", body: {
+                    files, to
+                }
+            });
         });
     }
 }

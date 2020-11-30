@@ -2,13 +2,13 @@ var ss = require('socket.io-stream');
 var path = require('path');
 const fs = require('fs');
 class WebSocketClient {
-    Connect(host, port, token = "") {
+    Connect(host, port, token = "", name = "") {
         if (this.socket)
             this.socket.close();
         // const io = require('socket.io-client');
         this.socket = require('socket.io-client')(`http://${host}:${port}`, {
             reconnectionDelay: 1000 * 5,
-            query: { token: token }
+            query: { token, name }
         });
 
 
@@ -27,18 +27,17 @@ class WebSocketClient {
             process.send({ type: "clipboard-image", body: data });
         });
         var _ = this;
-        ss(this.socket).on("clipboard-image-changed", (stream, data) => {
-            console.warn("client,send-image：", data);
+        ss(this.socket).on("receive-file", (stream, data) => {
             var filename = path.basename(data.name);
-            var _stream = ss.createStream();
+            var _stream = fs.createWriteStream(data.name);
             stream.pipe(_stream);
             // const instance = Buffer.from(stream);
             // const base64 = instance.toString('base64')
             // console.warn(base64);
-            _.StreamToBuffer(_stream).then(buffer => {
-                console.warn(buffer);
-            });
-            process.send({ type: "clipboard-image", body: filename });
+            // _.StreamToBuffer(_stream).then(buffer => {
+            //     console.warn(buffer);
+            // });
+            // process.send({ type: "clipboard-image", body: filename });
         });
 
     }
@@ -59,7 +58,7 @@ process.on('message', (m) => {
     try {
         switch (m.type) {
             case 'Connect': {
-                client.Connect(m.payload.host, m.payload.port, m.payload.token);
+                client.Connect(m.payload.host, m.payload.port, m.payload.token, m.payload.name);
                 break;
             }
             case "SendMessage":

@@ -1,9 +1,9 @@
 const express = require('express');
 var Readable = require('stream').Readable;
 var Stream = require('stream');
-const { nativeImage } = require('electron');
 const fs = require('fs');
 var ss = require('socket.io-stream');
+var path = require("path");
 
 const app = express();
 var server = require('http').createServer(app).listen(9990, "0.0.0.0");
@@ -18,22 +18,37 @@ io.use((socket, next) => {
     return next(new Error("授权码错误"));
 });
 var clients = [];
+
 const shareGroup = "my-share-group";
 io.on("connection", socket => {
     clients.push(socket);
+    console.warn(socket.id);
     socket.join(shareGroup);
+    SendConnectonList("OnUserJoin");
     socket.on("disconnect", () => {
         socket.leave(shareGroup);
     });
 });
 
+function SendConnectonList(type) {
+    var list = [];
+    clients.forEach(c => {
+        list.push({
+            id: c.id,
+            name: c.handshake.query.name
+        });
+    });
+    process.send({ type, body: list });
+}
+
 console.warn("启动");
+
 
 process.on('message', (m) => {
     try {
         switch (m.type) {
             case 'SEND-MESSAGE': {
-                console.warn("SEND-MESSAGE");
+                //console.warn("SEND-MESSAGE");
                 switch (m.payload.msg.type) {
                     case "clipboard-text":
                         io.to(shareGroup).emit("clipboard-text-changed", m.payload.msg.body);
@@ -42,24 +57,31 @@ process.on('message', (m) => {
                     case "clipboard-image":
                         io.to(shareGroup).emit("clipboard-image-changed", m.payload.msg.body);
                         break;
-                    case "send-file":
-                        //console.warn(m.payload.msg.body);
-                        var buffer = Buffer.from(m.payload.msg.body, "base64");
-                        //io.to(shareGroup).emit("clipboard-image-changed", m.payload.msg.body);
+                    case "send-files":
                         clients.forEach(client => {
-                            var _stream = ss.createStream();
-                            ss(client).emit("clipboard-image-changed", _stream, { name: "clipboard-image.png" });
-                            // console.warn(m.payload.msg.body.toString());
-                            // 创建一个bufferstream
-                            var bufferStream = new Stream.PassThrough();
-                            //将Buffer写入
-                            bufferStream.end(buffer);
-                            console.warn("发送数据");
-                            bufferStream.pipe(_stream);
-                        });
+                            m.payload.msg.body.files.forEach(file => {
+                                var totalSize = fs.statSync(file).size;
+                                var _stream = ss.createStream();
+                                ss(client).emit("receive-file", _stream, { name: path.basename(file) });
+                                var stream = fs.createReadStream(file);
+                                var size = 0;
+                                var processVal = 0;
+                                stream.on("data", chunk => {
+                                    size += chunk.length;
+                                    var curr = Math.floor(size / totalSize * 100);
+                                    if (processVal == curr)
+                                        return;
+                                    processVal = curr;
+                                    process.send({
+                                        type: "OnProcessChanged", body: processVal
+                                    });
+                                });
+                                stream.pipe(_stream);
+                            });
 
-                        //fs.createReadStream("933299ad16ac8046e7198cba22c4fdd.png").pipe(_stream);
+                        });
                         break;
+
                     default:
                         console.error("不支持的类型");
                         break;

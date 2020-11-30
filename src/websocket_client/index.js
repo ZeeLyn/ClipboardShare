@@ -5,6 +5,7 @@ const { clipboard, nativeImage } = require('electron');
 WebSocketClientProcess.on("message", function (msg) {
     switch (msg.type) {
         case "clipboard-text":
+            console.warn("设置剪切板：" + msg.body);
             clipboard.writeText(msg.body);
             break;
         case "clipboard-image":
@@ -18,8 +19,8 @@ WebSocketClientProcess.on("message", function (msg) {
 
 
 module.exports = {
-    Connection: (host, port, token = "") => {
-        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, token } });
+    Connection: (host, port, token = "", name = "") => {
+        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, token, name } });
     },
     SendMessage: (message) => {
         WebSocketClientProcess.send({ type: "SendMessage", payload: { message } });
