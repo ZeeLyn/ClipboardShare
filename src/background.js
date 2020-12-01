@@ -168,7 +168,7 @@ ipcMain.on("ShowWindow", () => {
 
 });
 ipcMain.on("ShowMiniWindow", () => {
-	console.warn("ShowMiniWindow");
+	//console.warn("ShowMiniWindow");
 	if (process.platform == "win32")
 		suspensionWindow.setResizable(true)
 	suspensionWindow.setSize(100, 40, true);

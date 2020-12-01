@@ -1,8 +1,12 @@
 <template>
     <div class="sendfile">
         <div class="suspension-container" v-if="!show" @dragenter="OnShow">
-            <div class="p" @click="OnShow"></div>
-            <div class="move-container"></div>
+            <div class="p" @click="OnShow">
+                <img src="../assets/icon.png" />
+            </div>
+            <div class="move-container">
+                <img src="../assets/move.png" />
+            </div>
         </div>
         <div v-if="show" class="container">
             <div class="header">
@@ -232,17 +236,24 @@ body {
 .suspension-container {
     width: 100px;
     height: 40px;
-
     position: fixed;
     left: 0;
     top: 0;
     display: flex;
-    border-radius: 12px;
+    border-radius: 20px;
     overflow: hidden;
+    user-select: none;
 }
 .suspension-container .p {
     flex: 1;
-    background: #1e1e1e;
+    background: #2d2d2d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.suspension-container .p img {
+    width: 26px;
+    pointer-events: none;
 }
 .suspension-container .move-container {
     -webkit-app-region: drag;
@@ -250,11 +261,16 @@ body {
     width: 30px;
     height: 100%;
     cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.suspension-container .move-container img {
+    width: 24px;
 }
 .container {
     display: flex;
     flex-direction: column;
-
     height: 100%;
 }
 .header {
@@ -273,7 +289,7 @@ body {
 .header b {
     flex: 1;
     margin-right: 25px;
-    font-size: 16px;
+    font-size: 15px;
     color: #fff;
     -webkit-app-region: drag;
 }
@@ -289,9 +305,9 @@ body {
     margin: 5px;
     padding: 10px;
     color: #fff;
-    flex: 1;
     background: #2d2d2d;
 }
+
 .forbidden-childe-pointer-events * {
     pointer-events: none;
 }
