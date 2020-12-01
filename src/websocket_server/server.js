@@ -4,13 +4,13 @@ var Stream = require('stream');
 const fs = require('fs');
 var ss = require('socket.io-stream');
 var path = require("path");
-
+var server_token = "";
 const app = express();
 var server = require('http').createServer(app).listen(9990, "0.0.0.0");
 var io = require('socket.io')(server);
 io.use((socket, next) => {
     let token = socket.handshake.query.token;
-    if (token == "123") {
+    if (token == server_token) {
         return next();
     }
     console.error("授权码错误");
@@ -51,6 +51,9 @@ console.warn("启动");
 process.on('message', (m) => {
     try {
         switch (m.type) {
+            case "SetServerToken":
+                server_token = m.payload;
+                break;
             case 'SEND-MESSAGE': {
                 //console.warn("SEND-MESSAGE");
                 switch (m.payload.type) {

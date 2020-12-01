@@ -20,7 +20,7 @@ WebSocketClientProcess.on("message", function (msg) {
 
 module.exports = {
     Connection: (host, port, id, token = "", name = "") => {
-        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, token, name, id } });
+        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, id, token, name } });
     },
     SendMessage: (message) => {
         WebSocketClientProcess.send({ type: "SendMessage", payload: { message } });

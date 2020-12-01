@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
-const ServerHandlers = require('./tcp_server');
-const ClientHandlers = require('./tcp_client');
-var Stream = require('stream');
+// const ServerHandlers = require('./tcp_server');
+// const ClientHandlers = require('./tcp_client');
+// var Stream = require('stream');
 const WebSocketServerHandlers = require('./websocket_server');
 const WebSocketClientHandlers = require('./websocket_client');
 const clipboardWatcher = require('electron-clipboard-watcher');
@@ -37,10 +37,11 @@ export default {
         });
 
         WebSocketServerHandlers.SetWindow(minWin, fileWin);
-        ipcMain.on("connect_to_server", (event, host) => {
+        WebSocketServerHandlers.InitServer(config);
+        ipcMain.on("connect_to_server", (event, host, token) => {
             console.warn("host:" + host);
             //ClientHandlers.Connection(arg, 9999);
-            WebSocketClientHandlers.Connection(host, 9990, conf.uid, conf.token, conf.nick_name);
+            WebSocketClientHandlers.Connection(host, 9990, conf.uid, token, conf.nick_name);
         });
 
         ipcMain.on("send_files", (event, files, to) => {

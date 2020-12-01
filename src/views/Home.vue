@@ -5,7 +5,9 @@
             type="text"
             placeholder="连接要共享剪切板的电脑IP"
             v-model="host"
-        /><input type="button" value="连接" @click="connect_to_server" />
+        />
+        <input type="text" placeholder="秘钥" v-model="connection_token" />
+        <input type="button" value="连接" @click="connect_to_server" />
 
         <div class="mask" v-if="showInit">
             <div class="container">
@@ -48,6 +50,7 @@ export default {
     data() {
         return {
             host: "127.0.0.1",
+            connection_token: "",
             showInit: false,
             token: "",
             folder: "",
@@ -68,7 +71,11 @@ export default {
     methods: {
         connect_to_server() {
             console.warn(this.host);
-            ipcRenderer.send("connect_to_server", this.host);
+            ipcRenderer.send(
+                "connect_to_server",
+                this.host,
+                this.connection_token
+            );
         },
         SaveConfig() {
             if (!this.token) {

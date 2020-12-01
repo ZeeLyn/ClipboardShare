@@ -4,6 +4,8 @@ const WebSocketServerProcess = fork('./src/websocket_server/server.js');
 var fileWindow = null;
 var mainWindow = null;
 
+var config = null;
+
 WebSocketServerProcess.on("message", function (msg) {
     //console.warn(msg);
     switch (msg.type) {
@@ -30,9 +32,14 @@ WebSocketServerProcess.on("message", function (msg) {
             break;
     }
 });
+
 module.exports = {
+    InitServer: (c) => {
+        config = c;
+        WebSocketServerProcess.send({ type: "SetServerToken", payload: config.GetConfig().token });
+    },
     StartServer: (host, port) => {
-        WebSocketServerProcess.send({ type: "START_SERVER", payload: { host, port } });
+        WebSocketServerProcess.send({ type: "START_SERVER", payload: { host, port, token: config.token } });
     },
     SetWindow: (mainWin, fileWin) => { mainWindow = mainWin, fileWindow = fileWin },
     StopServer: () => {
