@@ -1,59 +1,72 @@
 <template>
-    <div class="home">
-        <div class="client-list">
-            <div
-                v-for="client in clients"
-                :key="client.id"
-                class="client-item"
-                :class="
-                    (client.dragenter ? 'dragenter' : '') +
-                    (forbiddenChildePointerEvents
-                        ? ' forbidden-childe-pointer-events'
-                        : '')
-                "
-                @dragover="dragover"
-                @dragenter="dragenter"
-                @dragleave="dragleave"
-                v-on:drop="onDrop"
-                :data-client-id="client.id"
-            >
-                <div class="client-info">
-                    {{ client.nick_name }}
-                </div>
+    <div class="sendfile">
+        <div class="suspension-container" v-if="!show" @click="OnShow"></div>
+        <div v-if="show" class="container">
+            <div class="header">
+                <img src="../assets/back.png" @click="OnBack" />
+                <b>分享的机器列表</b>
+            </div>
+            <div class="client-list">
                 <div
-                    class="file-list"
-                    v-if="client.files && client.files.length > 0"
+                    v-for="client in clients"
+                    :key="client.id"
+                    class="client-item"
+                    :class="
+                        (client.dragenter ? 'dragenter' : '') +
+                        (forbiddenChildePointerEvents
+                            ? ' forbidden-childe-pointer-events'
+                            : '')
+                    "
+                    @dragover="dragover"
+                    @dragenter="dragenter"
+                    @dragleave="dragleave"
+                    v-on:drop="onDrop"
+                    :data-client-id="client.id"
                 >
+                    <div class="client-info">
+                        {{ client.nick_name }}
+                    </div>
                     <div
-                        v-for="file in client.files"
-                        :key="file.id"
-                        :data-file-id="file.id"
-                        class="file-item"
+                        class="file-list"
+                        v-if="client.files && client.files.length > 0"
                     >
-                        <div class="file-info">
-                            <label> {{ file.name }}</label>
-                            <div>
-                                <img
-                                    title="中止发送"
-                                    src="../assets/stop.png"
-                                    @click="AbortSend(client.id, file.id)"
-                                    v-if="file.progress < 100 && !file.abort"
-                                />
-                                <img
-                                    title="删除"
-                                    src="../assets/del.png"
-                                    @click="DeleteSend(client.id, file.id)"
-                                    v-if="file.progress >= 100 || file.abort"
-                                />
+                        <div
+                            v-for="file in client.files"
+                            :key="file.id"
+                            :data-file-id="file.id"
+                            class="file-item"
+                        >
+                            <div class="file-info">
+                                <label> {{ file.name }}</label>
+                                <div>
+                                    <img
+                                        title="中止发送"
+                                        src="../assets/stop.png"
+                                        @click="AbortSend(client.id, file.id)"
+                                        v-if="
+                                            file.progress < 100 && !file.abort
+                                        "
+                                    />
+                                    <img
+                                        title="删除"
+                                        src="../assets/del.png"
+                                        @click="DeleteSend(client.id, file.id)"
+                                        v-if="
+                                            file.progress >= 100 || file.abort
+                                        "
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div class="progress">
-                            <div
-                                class="progress-bar"
-                                :class="file.abort ? 'abort' : ''"
-                                :style="'width:' + file.progress + '%;'"
-                            ></div>
-                            <div class="progress-txt">{{ file.progress }}%</div>
+                            <div class="progress">
+                                <div
+                                    class="progress-bar"
+                                    :class="file.abort ? 'abort' : ''"
+                                    :style="'width:' + file.progress + '%;'"
+                                ></div>
+                                <div class="progress-txt">
+                                    {{ file.progress }}%
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -69,6 +82,7 @@ export default {
     name: "SendFile",
     data() {
         return {
+            show: false,
             host: "127.0.0.1",
             clients: [
                 // {
@@ -119,6 +133,14 @@ export default {
         });
     },
     methods: {
+        OnShow() {
+            this.show = true;
+            ipcRenderer.send("ShowWindow");
+        },
+        OnBack() {
+            this.show = false;
+            ipcRenderer.send("ShowMiniWindow");
+        },
         onDrop(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -172,17 +194,53 @@ export default {
 };
 </script>
 <style scoped>
+.sendfile {
+    height: 100%;
+}
+.suspension-container {
+    width: 100px;
+    height: 40px;
+    background: #ff0000;
+    position: fixed;
+    left: 0;
+    top: 0;
+    /* -webkit-app-region: drag; */
+}
+.container {
+    display: flex;
+    flex-direction: column;
+}
+.header {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    border-bottom: 1px #2d2d2d solid;
+}
+.header img {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+.header b {
+    flex: 1;
+    margin-right: 20px;
+    font-size: 16px;
+    color: #fff;
+    -webkit-app-region: drag;
+}
 .client-list {
-    margin: 5px 0;
+    flex: 1;
+    display: flex;
+    padding: 5px 0;
     display: flex;
     flex-direction: column;
 }
 .client-item {
-    margin: 5px 0;
-    border: 1px dashed #eee;
+    margin: 5px;
     padding: 10px;
     color: #fff;
     flex: 1;
+    background: #2d2d2d;
 }
 .forbidden-childe-pointer-events * {
     pointer-events: none;
@@ -247,7 +305,6 @@ export default {
     align-items: center;
 }
 .dragenter {
-    border: 1px #fff solid;
     background: rgb(38, 252, 145);
     color: #333;
 }

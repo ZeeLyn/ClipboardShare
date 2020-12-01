@@ -95,14 +95,17 @@ async function createSuspensionWindow() {
 
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
-		width: 1500, height: 800,
+		width: 100, height: 40,
 		type: "toolbar",
-		frame: true,//要创建无边框窗口
-		resizable: false,
-		show: configs.token ? true : false,
+		frame: false,//要创建无边框窗口
+		resizable: true,
+		show: false,
 		webPreferences: {
 			nodeIntegration: true
 		},
+		minimizable: false,
+		maximizable: false,
+		closable: false,
 		transparent: false,
 		alwaysOnTop: true,
 		skipTaskbar: false
@@ -115,13 +118,17 @@ async function createSuspensionWindow() {
 		// Load the index.html when not in development
 		suspensionWindow.loadURL('app://./index.html/#/sendfile')
 	}
-	// suspensionWindow.once('ready-to-show', () => {
-	// 	suspensionWindow.show()
+	suspensionWindow.once('ready-to-show', () => {
+		if (configs.token)
+			suspensionWindow.show();
+	});
+
+	// if (!process.env.IS_TEST)
+	// 	suspensionWindow.webContents.openDevTools()
+
+	// suspensionWindow.on("", function () {
+	// 	console.warn("focus");
 	// });
-	if (!process.env.IS_TEST)
-		suspensionWindow.webContents.openDevTools()
-
-
 
 	// const size = screen.getPrimaryDisplay().workAreaSize;   //获取显示器的宽高
 	// const winSize = win.getSize();  //获取窗口宽高
@@ -148,4 +155,13 @@ ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 //基本信息填写完成
 ipcMain.on("init-completed", (event, arg) => {
 	suspensionWindow.show();
+});
+
+ipcMain.on("ShowWindow", () => {
+	suspensionWindow.setSize(400, 600, true);
+
+});
+ipcMain.on("ShowMiniWindow", () => {
+	console.warn("ShowMiniWindow");
+	suspensionWindow.setSize(100, 40, true);
 });
