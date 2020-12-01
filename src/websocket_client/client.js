@@ -1,7 +1,7 @@
 var ss = require('socket.io-stream');
 var path = require('path');
 const fs = require('fs');
-
+var save_file_folder = ""
 class WebSocketClient {
     Connect(host, port, id, token = "", name = "") {
         if (this.socket)
@@ -30,7 +30,7 @@ class WebSocketClient {
         var _ = this;
         ss(this.socket).on("receive-file", (stream, data) => {
             var filename = path.basename(data.name);
-            var _stream = fs.createWriteStream(data.name);
+            var _stream = fs.createWriteStream(path.join(save_file_folder, data.name));
             stream.pipe(_stream);
             // const instance = Buffer.from(stream);
             // const base64 = instance.toString('base64')
@@ -59,6 +59,7 @@ process.on('message', (m) => {
     try {
         switch (m.type) {
             case 'Connect': {
+                save_file_folder = m.payload.save_file_folder;
                 client.Connect(m.payload.host, m.payload.port, m.payload.id, m.payload.token, m.payload.name);
                 break;
             }

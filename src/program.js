@@ -41,7 +41,7 @@ export default {
         ipcMain.on("connect_to_server", (event, host, token) => {
             console.warn("host:" + host);
             //ClientHandlers.Connection(arg, 9999);
-            WebSocketClientHandlers.Connection(host, 9990, conf.uid, token, conf.nick_name);
+            WebSocketClientHandlers.Connection(config, host, 9990, conf.uid, token, conf.nick_name);
         });
 
         ipcMain.on("send_files", (event, files, to) => {

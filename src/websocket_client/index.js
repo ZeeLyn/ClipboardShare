@@ -1,7 +1,7 @@
 const fork = require('child_process').fork;
 const WebSocketClientProcess = fork('./src/websocket_client/client.js');
 const { clipboard, nativeImage } = require('electron');
-
+var _config = null;
 WebSocketClientProcess.on("message", function (msg) {
     switch (msg.type) {
         case "clipboard-text":
@@ -19,8 +19,10 @@ WebSocketClientProcess.on("message", function (msg) {
 
 
 module.exports = {
-    Connection: (host, port, id, token = "", name = "") => {
-        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, id, token, name } });
+    Connection: (conf, host, port, id, token = "", name = "") => {
+        _config = conf;
+        //console.warn(conf.GetConfig());
+        WebSocketClientProcess.send({ type: "Connect", payload: { host, port, id, token, name, save_file_folder: conf.GetConfig().save_file_dir } });
     },
     SendMessage: (message) => {
         WebSocketClientProcess.send({ type: "SendMessage", payload: { message } });
