@@ -1,6 +1,6 @@
 <template>
     <div class="sendfile">
-        <div class="suspension-container" v-if="!show">
+        <div class="suspension-container" v-if="!show" @dragenter="OnShow">
             <div class="move-container"></div>
             <div @click="OnShow"></div>
         </div>
