@@ -1,6 +1,9 @@
 <template>
     <div class="sendfile">
-        <div class="suspension-container" v-if="!show" @click="OnShow"></div>
+        <div class="suspension-container" v-if="!show">
+            <div class="move-container"></div>
+            <div @click="OnShow"></div>
+        </div>
         <div v-if="show" class="container">
             <div class="header">
                 <img src="../assets/back.png" @click="OnBack" />
@@ -196,6 +199,7 @@ export default {
 <style scoped>
 .sendfile {
     height: 100%;
+    user-select: none;
 }
 .suspension-container {
     width: 100px;
@@ -204,7 +208,14 @@ export default {
     position: fixed;
     left: 0;
     top: 0;
-    /* -webkit-app-region: drag; */
+    display: flex;
+}
+.suspension-container div {
+    flex: 1;
+}
+.suspension-container .move-container {
+    -webkit-app-region: drag;
+    background: #fff;
 }
 .container {
     display: flex;
@@ -220,10 +231,11 @@ export default {
     width: 20px;
     height: 20px;
     cursor: pointer;
+    margin-left: 5px;
 }
 .header b {
     flex: 1;
-    margin-right: 20px;
+    margin-right: 25px;
     font-size: 16px;
     color: #fff;
     -webkit-app-region: drag;
