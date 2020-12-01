@@ -108,7 +108,8 @@ async function createSuspensionWindow() {
 		closable: false,
 		transparent: true,
 		alwaysOnTop: true,
-		skipTaskbar: false
+		skipTaskbar: false,
+		titleBarStyle: "hidden"
 	});
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
