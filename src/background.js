@@ -98,7 +98,7 @@ async function createSuspensionWindow() {
 		width: 100, height: 40,
 		type: "toolbar",
 		frame: false,//要创建无边框窗口
-		resizable: true,
+		resizable: false,
 		show: false,
 		webPreferences: {
 			nodeIntegration: true
@@ -106,7 +106,7 @@ async function createSuspensionWindow() {
 		minimizable: false,
 		maximizable: false,
 		closable: false,
-		transparent: false,
+		transparent: true,
 		alwaysOnTop: true,
 		skipTaskbar: false
 	});
@@ -158,10 +158,15 @@ ipcMain.on("init-completed", (event, arg) => {
 });
 
 ipcMain.on("ShowWindow", () => {
+	suspensionWindow.setResizable(true)
 	suspensionWindow.setSize(400, 600, true);
+	suspensionWindow.setResizable(false)
 
 });
 ipcMain.on("ShowMiniWindow", () => {
 	console.warn("ShowMiniWindow");
+	suspensionWindow.setResizable(true)
 	suspensionWindow.setSize(100, 40, true);
+	suspensionWindow.setResizable(false)
+
 });

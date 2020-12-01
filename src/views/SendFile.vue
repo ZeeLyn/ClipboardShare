@@ -1,8 +1,8 @@
 <template>
     <div class="sendfile">
         <div class="suspension-container" v-if="!show" @dragenter="OnShow">
+            <div class="p" @click="OnShow"></div>
             <div class="move-container"></div>
-            <div @click="OnShow"></div>
         </div>
         <div v-if="show" class="container">
             <div class="header">
@@ -80,7 +80,8 @@
 
 <script>
 const { ipcRenderer } = require("electron");
-var UUID = require("uuid");
+// const { Menu, MenuItem } = remote;
+const UUID = require("uuid");
 export default {
     name: "SendFile",
     data() {
@@ -134,6 +135,27 @@ export default {
             if (!file) return;
             file.abort = true;
         });
+
+        // const menu = new Menu();
+        // menu.append(
+        //     new MenuItem({
+        //         label: "Undo",
+        //         role: "undo",
+        //         accelerator: "CmdOrCtrl+Z",
+        //     })
+        // );
+        // document
+        //     .querySelector(".sendfile .suspension-container div")
+        //     .addEventListener(
+        //         "contextmenu",
+        //         (e) => {
+        //             e.preventDefault();
+        //             menu.popup({
+        //                 window: remote.getCurrentWindow(),
+        //             });
+        //         },
+        //         false
+        //     );
     },
     methods: {
         OnShow() {
@@ -196,10 +218,16 @@ export default {
     },
 };
 </script>
-<style scoped>
+<style>
+html,
+body {
+    background: none;
+}
 .sendfile {
     height: 100%;
     user-select: none;
+    border-radius: 10px;
+    overflow: hidden;
 }
 .suspension-container {
     width: 100px;
@@ -209,23 +237,31 @@ export default {
     left: 0;
     top: 0;
     display: flex;
+    border-radius: 10px;
+    overflow: hidden;
 }
-.suspension-container div {
+.suspension-container .p {
     flex: 1;
 }
 .suspension-container .move-container {
     -webkit-app-region: drag;
     background: #fff;
+    width: 30px;
+    height: 100%;
+    cursor: move;
 }
 .container {
     display: flex;
     flex-direction: column;
+    background: #fff;
+    height: 100%;
 }
 .header {
     display: flex;
     justify-content: center;
     padding: 10px 0;
     border-bottom: 1px #2d2d2d solid;
+    background: #1e1e1e;
 }
 .header img {
     width: 20px;
@@ -246,6 +282,7 @@ export default {
     padding: 5px 0;
     display: flex;
     flex-direction: column;
+    background: #1e1e1e;
 }
 .client-item {
     margin: 5px;
