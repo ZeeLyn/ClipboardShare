@@ -19,6 +19,7 @@ async function createWindow() {
 	const win = mainWin = new BrowserWindow({
 		width: 2000,
 		height: 1500,
+		darkTheme: true,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -96,7 +97,7 @@ async function createSuspensionWindow() {
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
 		width: 100, height: 40,
-		type: "toolbar",
+		type: "desktop",
 		frame: false,//要创建无边框窗口
 		resizable: false,
 		show: false,
@@ -159,15 +160,19 @@ ipcMain.on("init-completed", (event, arg) => {
 });
 
 ipcMain.on("ShowWindow", () => {
-	suspensionWindow.setResizable(true)
+	if (process.platform == "win32")
+		suspensionWindow.setResizable(true)
 	suspensionWindow.setSize(400, 600, true);
-	suspensionWindow.setResizable(false)
+	if (process.platform == "win32")
+		suspensionWindow.setResizable(false)
 
 });
 ipcMain.on("ShowMiniWindow", () => {
 	console.warn("ShowMiniWindow");
-	suspensionWindow.setResizable(true)
+	if (process.platform == "win32")
+		suspensionWindow.setResizable(true)
 	suspensionWindow.setSize(100, 40, true);
-	suspensionWindow.setResizable(false)
+	if (process.platform == "win32")
+		suspensionWindow.setResizable(false)
 
 });

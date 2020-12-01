@@ -226,22 +226,23 @@ body {
 .sendfile {
     height: 100%;
     user-select: none;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
 }
 .suspension-container {
     width: 100px;
     height: 40px;
-    background: #ff0000;
+
     position: fixed;
     left: 0;
     top: 0;
     display: flex;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
 }
 .suspension-container .p {
     flex: 1;
+    background: #1e1e1e;
 }
 .suspension-container .move-container {
     -webkit-app-region: drag;
@@ -253,7 +254,7 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    background: #fff;
+
     height: 100%;
 }
 .header {
