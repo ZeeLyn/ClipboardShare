@@ -267,6 +267,7 @@ body {
 }
 .suspension-container .move-container img {
     width: 24px;
+    pointer-events: none;
 }
 .container {
     display: flex;

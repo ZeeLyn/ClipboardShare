@@ -138,6 +138,10 @@ async function createSuspensionWindow() {
 	// //设置窗口的位置 注意x轴要桌面的宽度 - 窗口的宽度
 	// win.setPosition(size.width - winSize[0], 100);
 
+	suspensionWindow.on("moved", (e, arg) => {
+		console.warn(e.sender.getPosition());
+	});
+
 }
 //将文件拖入悬浮窗
 ipcMain.on("drag_in_files", (event, arg) => {
