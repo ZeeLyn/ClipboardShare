@@ -5,8 +5,10 @@ var Stream = require('stream');
 const WebSocketServerHandlers = require('./websocket_server');
 const WebSocketClientHandlers = require('./websocket_client');
 const clipboardWatcher = require('electron-clipboard-watcher');
+import config from './lib/config.js'
+
 export default {
-    Init: (minWin, fileWin) => {
+    Init: (conf, minWin, fileWin) => {
         //ServerHandlers.StartServer("0.0.0.0", 9999);
         // setTimeout(function () {
         //     ClientHandlers.Connection("127.0.0.1", 9999);
@@ -35,18 +37,23 @@ export default {
         });
 
         WebSocketServerHandlers.SetWindow(minWin, fileWin);
-        ipcMain.on("connect_to_server", (event, host, name) => {
+        ipcMain.on("connect_to_server", (event, host) => {
             console.warn("host:" + host);
             //ClientHandlers.Connection(arg, 9999);
-            WebSocketClientHandlers.Connection(host, 9990, "123", name);
+            WebSocketClientHandlers.Connection(host, 9990, conf.uid, conf.token, conf.nick_name);
         });
 
         ipcMain.on("send_files", (event, files, to) => {
-            console.warn("发送文件", files, to);
+            var body = { files, to };
+            //console.warn("发送文件", { files, to });
             WebSocketServerHandlers.SendMessage({
-                type: "send-files", body: {
-                    files, to
-                }
+                type: "send-files", body: body
+            });
+        });
+        ipcMain.on("abort_send", (evt, client, fileid) => {
+            //console.warn("abort_send");
+            WebSocketServerHandlers.SendMessage({
+                type: "abort-send", body: { client, fileid }
             });
         });
     }

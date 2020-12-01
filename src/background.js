@@ -18,7 +18,7 @@ async function createWindow() {
 	// Create the browser window.
 	const win = mainWin = new BrowserWindow({
 		width: 2000,
-		height: 800,
+		height: 1500,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -69,7 +69,7 @@ app.on('ready', async () => {
 	createWindow();
 	createSuspensionWindow();
 
-	program.Init(mainWin, suspensionWindow)
+	program.Init(configs, mainWin, suspensionWindow)
 
 })
 
@@ -95,7 +95,7 @@ async function createSuspensionWindow() {
 
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
-		width: 1000, height: 500,
+		width: 1500, height: 800,
 		type: "toolbar",
 		frame: true,//要创建无边框窗口
 		resizable: false,
@@ -139,7 +139,7 @@ ipcMain.on("drag_in_files", (event, arg) => {
 //选择文件保存目录
 ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 	dialog.showOpenDialog({ properties: ["openDirectory"] }).then(e => {
-		console.warn(e);
+		//console.warn(e);
 		if (e.canceled)
 			return;
 		mainWin.webContents.send("OnChangeSaveFileFolder", e.filePaths[0]);

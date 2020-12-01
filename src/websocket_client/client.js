@@ -1,14 +1,15 @@
 var ss = require('socket.io-stream');
 var path = require('path');
 const fs = require('fs');
+
 class WebSocketClient {
-    Connect(host, port, token = "", name = "") {
+    Connect(host, port, id, token = "", name = "") {
         if (this.socket)
             this.socket.close();
         // const io = require('socket.io-client');
         this.socket = require('socket.io-client')(`http://${host}:${port}`, {
             reconnectionDelay: 1000 * 5,
-            query: { token, name }
+            query: { token, name, id }
         });
 
 
@@ -58,7 +59,7 @@ process.on('message', (m) => {
     try {
         switch (m.type) {
             case 'Connect': {
-                client.Connect(m.payload.host, m.payload.port, m.payload.token, m.payload.name);
+                client.Connect(m.payload.host, m.payload.port, m.payload.id, m.payload.token, m.payload.name);
                 break;
             }
             case "SendMessage":

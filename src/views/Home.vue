@@ -68,7 +68,7 @@ export default {
     methods: {
         connect_to_server() {
             console.warn(this.host);
-            ipcRenderer.send("connect_to_server", this.host, "hello");
+            ipcRenderer.send("connect_to_server", this.host);
         },
         SaveConfig() {
             if (!this.token) {
@@ -92,6 +92,9 @@ export default {
 };
 </script>
 <style scoped>
+.home {
+    margin-top: 100px;
+}
 .mask {
     position: fixed;
     left: 0;
