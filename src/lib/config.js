@@ -13,7 +13,8 @@ export default {
                 uid: UUID.v1(),
                 nick_name: os.hostname(),
                 save_file_dir: path.resolve("./"),
-                token: ""
+                token: "",
+                postion: null
             };
             fs.writeFileSync(configFileName, JSON.stringify(config));
             return config;

@@ -37,6 +37,7 @@ export default {
         });
 
         WebSocketServerHandlers.SetWindow(minWin, fileWin);
+        WebSocketClientHandlers.SetWindow(minWin, fileWin);
         WebSocketServerHandlers.InitServer(config);
         ipcMain.on("connect_to_server", (event, host, token) => {
             console.warn("host:" + host);

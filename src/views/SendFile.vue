@@ -1,19 +1,24 @@
 <template>
     <div class="sendfile">
-        <div class="suspension-container" v-if="!show" @dragenter="OnShow">
-            <div class="p" @click="OnShow">
+        <div
+            class="suspension-container"
+            v-if="!show"
+            @dragenter="OnShow"
+            @dblclick="OnShow"
+        >
+            <div class="p" title="拖入文件试试">
                 <img src="../assets/icon.png" />
             </div>
-            <div class="move-container">
+            <div class="move-container" title="移动位置">
                 <img src="../assets/move.png" />
             </div>
         </div>
         <div v-if="show" class="container">
             <div class="header">
                 <img src="../assets/back.png" @click="OnBack" />
-                <b>分享的机器列表</b>
+                <b>分享的电脑列表</b>
             </div>
-            <div class="client-list">
+            <div class="client-list" v-if="clients && clients.length > 0">
                 <div
                     v-for="client in clients"
                     :key="client.id"
@@ -78,13 +83,16 @@
                     </div>
                 </div>
             </div>
+            <div class="no-client" v-if="!clients || clients.length == 0">
+                没有可分享的电脑
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-const { ipcRenderer } = require("electron");
-// const { Menu, MenuItem } = remote;
+const { ipcRenderer, remote } = require("electron");
+const { Menu } = remote;
 const UUID = require("uuid");
 export default {
     name: "SendFile",
@@ -110,6 +118,7 @@ export default {
         };
     },
     mounted() {
+        alert(window.location.href);
         ipcRenderer.on("OnUserJoin", (event, arg) => {
             //console.warn(arg);
             this.clients = [];
@@ -139,27 +148,41 @@ export default {
             if (!file) return;
             file.abort = true;
         });
+        var _ = this;
+        let trayMenuTemplate = [
+            {
+                label: "设置",
+                click: function () {
+                    ipcRenderer.send("show_main_window");
+                },
+            },
+            {
+                label: "我分享的电脑",
+                click: function () {
+                    _.OnShow();
+                },
+            },
+            {
+                label: "退出",
+                click: function () {
+                    ipcRenderer.send("app_exit");
+                },
+            },
+        ];
+        const menu = Menu.buildFromTemplate(trayMenuTemplate);
 
-        // const menu = new Menu();
-        // menu.append(
-        //     new MenuItem({
-        //         label: "Undo",
-        //         role: "undo",
-        //         accelerator: "CmdOrCtrl+Z",
-        //     })
-        // );
-        // document
-        //     .querySelector(".sendfile .suspension-container div")
-        //     .addEventListener(
-        //         "contextmenu",
-        //         (e) => {
-        //             e.preventDefault();
-        //             menu.popup({
-        //                 window: remote.getCurrentWindow(),
-        //             });
-        //         },
-        //         false
-        //     );
+        document
+            .querySelector(".sendfile .suspension-container")
+            .addEventListener(
+                "contextmenu",
+                (e) => {
+                    e.preventDefault();
+                    menu.popup({
+                        window: remote.getCurrentWindow(),
+                    });
+                },
+                false
+            );
     },
     methods: {
         OnShow() {
@@ -294,13 +317,19 @@ body {
     color: #fff;
     -webkit-app-region: drag;
 }
-.client-list {
+.client-list,
+.no-client {
     flex: 1;
     display: flex;
     padding: 5px 0;
     display: flex;
     flex-direction: column;
     background: #1e1e1e;
+}
+.no-client {
+    align-items: center;
+    justify-content: center;
+    color: #666;
 }
 .client-item {
     margin: 5px;

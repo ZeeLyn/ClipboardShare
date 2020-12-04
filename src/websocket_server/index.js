@@ -1,6 +1,11 @@
 const fork = require('child_process').fork;
+const path = require('path');
 const { clipboard, nativeImage } = require('electron');
-const WebSocketServerProcess = fork('./src/websocket_server/server.js');
+const isDevelopment = process.env.NODE_ENV !== 'production'
+const cwd = isDevelopment ? null : path.join(__dirname, '..');
+const WebSocketServerProcess = fork(isDevelopment ? './public/server.js' : 'app.asar/server.js', [], {
+    cwd: cwd
+});
 var fileWindow = null;
 var mainWindow = null;
 

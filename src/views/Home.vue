@@ -1,6 +1,33 @@
 <template>
     <div class="home">
-        <Header v-if="!showInit"></Header>
+        <!-- <Header v-if="!showInit"></Header> -->
+        <router-link to="/sendfile">SENDFILE</router-link>
+        <div class="config">
+            <div class="group">
+                <label>您的显示昵称:</label>
+                <span v-if="!nick_name_editing">{{ nick_name }}</span>
+                <input
+                    v-if="nick_name_editing"
+                    type="text"
+                    placeholder="请输入昵称"
+                    v-model="nick_name"
+                />
+            </div>
+            <div class="group">
+                <label>连接验证秘钥:</label>
+                <span v-if="!token_editing">******</span>
+                <input
+                    v-if="token_editing"
+                    type="text"
+                    placeholder="请输入秘钥"
+                    v-model="token"
+                />
+            </div>
+            <div class="group">
+                <label>文件保存目录:</label>
+                <span>{{ folder }}</span>
+            </div>
+        </div>
         <input
             type="text"
             placeholder="连接要共享剪切板的电脑IP"
@@ -38,21 +65,24 @@
 </template>
 
 <script>
-const { ipcRenderer } = require("electron");
-import Header from "@/components/Header.vue";
+const { ipcRenderer, remote } = require("electron");
+//import Header from "@/components/Header.vue";
 import config from "../lib/config.js";
 
 export default {
     name: "Home",
     components: {
-        Header,
+        //Header,
     },
     data() {
         return {
             host: "127.0.0.1",
             connection_token: "",
             showInit: false,
+            nick_name: "",
+            nick_name_editing: false,
             token: "",
+            token_editing: false,
             folder: "",
         };
     },
@@ -60,8 +90,21 @@ export default {
         ipcRenderer.on("OnUserJoin", (event, arg) => {
             console.warn(arg);
         });
+        ipcRenderer.on("OnConnect", () => {
+            console.warn("连接成功");
+        });
+        ipcRenderer.on("OnDisconnect", () => {
+            console.warn("连接断开");
+        });
+        ipcRenderer.on("OnConnectError", (event, err) => {
+            console.error("连接错误", err);
+            remote.dialog.showErrorBox("错误", err);
+        });
         this.conf = config.GetConfig();
         this.token = this.conf.token;
+        this.nick_name = this.conf.nick_name;
+        this.token = this.conf.token;
+        this.folder = this.conf.save_file_dir;
         if (this.token) return;
         this.showInit = true;
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
@@ -79,11 +122,11 @@ export default {
         },
         SaveConfig() {
             if (!this.token) {
-                alert("请输入秘钥！");
+                remote.dialog.showErrorBox("错误", "请输入秘钥");
                 return;
             }
             if (!this.folder) {
-                alert("请选择文件默认保存目录！");
+                remote.dialog.showErrorBox("错误", "请选择文件默认保存目录！");
                 return;
             }
             this.conf.token = this.token;
@@ -100,8 +143,17 @@ export default {
 </script>
 <style scoped>
 .home {
-    margin-top: 100px;
+    width: 400px;
+    color: #333;
 }
+.config * {
+    color: #fff;
+}
+.config .group {
+    width: 100%;
+    display: flex;
+}
+
 .mask {
     position: fixed;
     left: 0;

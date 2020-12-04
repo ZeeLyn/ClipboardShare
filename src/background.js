@@ -1,11 +1,12 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, screen, ipcMain, dialog } from 'electron'
+import { app, protocol, BrowserWindow, screen, ipcMain, dialog, Tray, Menu } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+var path = require('path');
 import config from './lib/config.js'
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
+var appTray = null;
 import program from "./program.js";
 var suspensionWindow = null;
 // Scheme must be registered before the app is ready
@@ -20,12 +21,24 @@ async function createWindow() {
 		width: 2000,
 		height: 1500,
 		darkTheme: true,
+		show: configs.token ? false : true,
+		skipTaskbar: configs.token ? false : true,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		}
 	})
+	win.on('ready-to-show', () => {
+		createSuspensionWindow();
+	});
+	//win.setMenu(null);
+	win.on("close", event => {
+		event.preventDefault();
+		win.hide();
+		win.setSkipTaskbar(true);
+	});
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
@@ -36,6 +49,7 @@ async function createWindow() {
 		// Load the index.html when not in development
 		win.loadURL('app://./index.html')
 	}
+	//win.webContents.openDevTools();
 	process.env.ELECTRON_RUN_AS_NODE = 0;
 }
 
@@ -44,7 +58,6 @@ app.on('window-all-closed', () => {
 	// On macOS it is common for applications and their menu bar
 	// to stay active until the user quits explicitly with Cmd + Q
 	if (process.platform !== 'darwin') {
-		suspensionWindow.destroy();
 		app.quit()
 	}
 })
@@ -68,10 +81,50 @@ app.on('ready', async () => {
 		}
 	}
 	createWindow();
-	createSuspensionWindow();
+	// createSuspensionWindow();
 
 	program.Init(configs, mainWin, suspensionWindow)
 
+	const cwd = isDevelopment ? null : path.join(__dirname, '..');
+	appTray = new Tray(isDevelopment ? path.join("./public", "app.png") : path.join(cwd, "app.asar/app.png"));
+	appTray.setToolTip("局域网剪切板分享");
+	let trayMenuTemplate = [
+		{
+			label: "关于",
+			click: function () {
+				dialog.showMessageBox({
+					type: "info",
+					title: "关于",
+					message: "v " + app.getVersion(),
+					buttons: ["ok"]
+				});
+			}
+		}, {
+			label: "设置",
+			click: function () {
+				mainWin.show();
+				mainWin.setSkipTaskbar(false);
+			}
+		}
+		, {
+			label: "暂停分享",
+			type: "checkbox",
+			click: function (e) {
+				console.warn(e.checked);
+			}
+		}
+		, {
+			label: '退出',
+			click: function () {
+				app.exit();
+			}
+		}];
+	const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
+	appTray.setContextMenu(contextMenu);
+	appTray.on("double-click", () => {
+		mainWin.show();
+		mainWin.setSkipTaskbar(false);
+	});
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -79,13 +132,11 @@ if (isDevelopment) {
 	if (process.platform === 'win32') {
 		process.on('message', (data) => {
 			if (data === 'graceful-exit') {
-				suspensionWindow.destroy();
 				app.quit()
 			}
 		})
 	} else {
 		process.on('SIGTERM', () => {
-			suspensionWindow.destroy();
 			app.quit()
 		})
 	}
@@ -96,20 +147,22 @@ async function createSuspensionWindow() {
 
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
-		width: 100, height: 40,
+		width: 1300, height: 600,
 		type: "desktop",
-		frame: false,//要创建无边框窗口
+		frame: true,
 		resizable: false,
-		show: false,
+		show: true,
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true,
+			webSecurity: false
 		},
 		minimizable: false,
 		maximizable: false,
 		closable: false,
-		transparent: true,
+		transparent: false,
 		alwaysOnTop: true,
-		skipTaskbar: false,
+		skipTaskbar: true,
 		titleBarStyle: "hidden"
 	});
 
@@ -118,15 +171,21 @@ async function createSuspensionWindow() {
 
 	} else {
 		// Load the index.html when not in development
-		suspensionWindow.loadURL('app://./index.html/#/sendfile')
+		//suspensionWindow.loadURL('app://./index.html#/sendfile')
+		suspensionWindow.loadURL('https://www.baidu.com')
 	}
 	suspensionWindow.once('ready-to-show', () => {
-		if (configs.token)
-			suspensionWindow.show();
+		//if (configs.token)
+		suspensionWindow.show();
 	});
 
-	// if (!process.env.IS_TEST)
-	// 	suspensionWindow.webContents.openDevTools()
+	if (configs.postion) {
+		suspensionWindow.setPosition(configs.postion.x, configs.postion.y, true);
+	}
+
+	//if (!process.env.IS_TEST)
+	suspensionWindow.openDevTools();
+	suspensionWindow.webContents.openDevTools()
 
 	// suspensionWindow.on("", function () {
 	// 	console.warn("focus");
@@ -138,8 +197,21 @@ async function createSuspensionWindow() {
 	// //设置窗口的位置 注意x轴要桌面的宽度 - 窗口的宽度
 	// win.setPosition(size.width - winSize[0], 100);
 
-	suspensionWindow.on("moved", (e, arg) => {
-		console.warn(e.sender.getPosition());
+
+	// let trayMenuTemplate = [
+	// 	{
+	// 		label: 'DEV',
+	// 		click: function () {
+	// 			suspensionWindow.webContents.openDevTools();
+	// 		}
+	// 	}];
+	// const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
+	// suspensionWindow.setMenu(contextMenu);
+	suspensionWindow.on("moved", (e) => {
+		//console.warn(e.sender.getPosition());
+		var p = e.sender.getPosition();
+		configs.postion = { x: p[0], y: p[1] };
+		config.ModifyConfig(configs);
 	});
 
 }
@@ -180,3 +252,11 @@ ipcMain.on("ShowMiniWindow", () => {
 		suspensionWindow.setResizable(false)
 
 });
+
+ipcMain.on("show_main_window", () => {
+	mainWin.show();
+	mainWin.setSkipTaskbar(false);
+});
+ipcMain.on("app_exit", () => {
+	app.exit();
+})
