@@ -24,22 +24,30 @@ io.on("connection", socket => {
     clients.push(socket);
     console.warn(socket.id);
     socket.join(shareGroup);
-    SendConnectonList("OnUserJoin");
+    //SendConnectonList("OnUserJoin");
+    process.send({
+        type: "OnUserJoin",
+        body: {
+            id: socket.handshake.query.id,
+            nick_name: socket.handshake.query.name
+        }
+    });
     socket.on("disconnect", () => {
         socket.leave(shareGroup);
+        var u = {
+            id: socket.handshake.query.id,
+            nick_name: socket.handshake.query.name
+        };
+        var index = clients.findIndex(item => item.id == socket.handshake.query.id);
+        clients.splice(index, 1);
+        process.send({
+            type: "OnUserLeave",
+            body: u
+        });
     });
 });
 var _streams = [];
-function SendConnectonList(type) {
-    var list = [];
-    clients.forEach(c => {
-        list.push({
-            id: c.handshake.query.id,
-            nick_name: c.handshake.query.name
-        });
-    });
-    process.send({ type, body: list });
-}
+
 function removeStream(id) {
     var index = _streams.findIndex(p => p.id == id);
     _streams.splice(index, 1);

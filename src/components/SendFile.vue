@@ -16,8 +16,17 @@
         <div v-if="show" class="container">
             <div class="header">
                 <img src="../assets/back.png" @click="OnBack" />
-                <b>分享的电脑列表</b>
+                <b>剪切板分享</b>
+                <div class="menu">
+                    <img class="menu-icon" src="../assets/menu.png" />
+                    <ul class="menu-items">
+                        <li>设置</li>
+                        <li>连接到其他服务器</li>
+                    </ul>
+                </div>
             </div>
+            <Settings :config="config" v-if="showSettings"></Settings>
+            <Connect></Connect>
             <div class="client-list" v-if="clients && clients.length > 0">
                 <div
                     v-for="client in clients"
@@ -91,11 +100,20 @@
 </template>
 
 <script>
+import Settings from "@/components/Settings.vue";
+import Connect from "@/components/Connect.vue";
 const { ipcRenderer, remote } = require("electron");
 const { Menu } = remote;
 import UUID from "uuid";
 export default {
     name: "SendFile",
+    components: {
+        Settings,
+        Connect,
+    },
+    props: {
+        msg: String,
+    },
     data() {
         return {
             show: false,
@@ -115,20 +133,22 @@ export default {
                 // },
             ],
             forbiddenChildePointerEvents: false,
+            showSettings: false,
         };
     },
     mounted() {
         //alert(window.location.href);
-        ipcRenderer.on("OnUserJoin", (event, arg) => {
+        ipcRenderer.on("OnUserJoin", (event, user) => {
             //console.warn(arg);
-            this.clients = [];
-            arg.forEach((item) => {
-                this.clients.push({
-                    ...item,
-                    dragenter: false,
-                    files: [],
-                });
+            this.clients.push({
+                ...user,
+                dragenter: false,
+                files: [],
             });
+        });
+        ipcRenderer.on("OnUserLeave", (event, arg) => {
+            var index = this.clients.findIndex((item) => item.id == arg.id);
+            this.clients.splice(index, 1);
         });
         ipcRenderer.on("OnProcessChanged", (event, msg) => {
             var id = msg.id;
@@ -245,11 +265,9 @@ export default {
     },
 };
 </script>
-<style>
-html,
-body {
-    background: none;
-}
+
+
+<style scoped>
 .sendfile {
     height: 100%;
     user-select: none;
@@ -296,6 +314,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    background: #1e1e1e;
 }
 .header {
     display: flex;
@@ -316,6 +335,41 @@ body {
     font-size: 15px;
     color: #fff;
     -webkit-app-region: drag;
+}
+.header .menu-icon {
+    margin-right: 10px;
+}
+
+.header .menu {
+    position: relative;
+    cursor: pointer;
+}
+
+.header .menu ul {
+    position: absolute;
+    right: 0;
+    top: 23px;
+    background: #eee;
+    color: #fff;
+    font-size: 12px;
+    display: none;
+    z-index: 9999;
+    border: 1px #eee solid;
+}
+
+.header .menu:hover .menu-items {
+    display: block;
+    text-align: left;
+}
+.header .menu:hover .menu-items li {
+    list-style: none;
+    white-space: nowrap;
+    padding: 5px 10px;
+    color: #333;
+}
+.header .menu:hover .menu-items li:hover {
+    background: rgb(53, 156, 216);
+    color: #fff;
 }
 .client-list,
 .no-client {

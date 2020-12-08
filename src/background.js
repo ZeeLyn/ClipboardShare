@@ -17,12 +17,19 @@ var mainWin = null;
 var configs = config.GetConfig();
 async function createWindow() {
 	// Create the browser window.
+
 	const win = mainWin = new BrowserWindow({
-		width: 2000,
-		height: 1500,
+		width: configs.token ? 1000 : 2000,
+		height: configs.token ? 400 : 1500,
 		darkTheme: true,
-		show: configs.token ? false : true,
-		skipTaskbar: configs.token ? false : true,
+		show: true,
+		frame: configs.token ? false : true,
+		skipTaskbar: true,
+		transparent: true,
+		alwaysOnTop: true,
+		// minimizable: false,
+		// maximizable: false,
+		// closable: false,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -31,9 +38,9 @@ async function createWindow() {
 		}
 	})
 	win.on('ready-to-show', () => {
-		createSuspensionWindow();
+		//createSuspensionWindow();
 	});
-	//win.setMenu(null);
+	win.setMenu(null);
 	win.on("close", event => {
 		event.preventDefault();
 		win.hide();
@@ -51,6 +58,7 @@ async function createWindow() {
 	}
 	//win.webContents.openDevTools();
 	process.env.ELECTRON_RUN_AS_NODE = 0;
+
 }
 
 // Quit when all windows are closed.
@@ -81,7 +89,7 @@ app.on('ready', async () => {
 		}
 	}
 	createWindow();
-	// createSuspensionWindow();
+	//createSuspensionWindow();
 
 	program.Init(configs, mainWin, suspensionWindow)
 
@@ -127,6 +135,7 @@ app.on('ready', async () => {
 	});
 })
 
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
 	if (process.platform === 'win32') {
@@ -142,20 +151,18 @@ if (isDevelopment) {
 	}
 }
 
-
-async function createSuspensionWindow() {
-
+function createSuspensionWindow() {
 	suspensionWindow = new BrowserWindow({
 		title: "发送文件",
 		width: 1300, height: 600,
-		type: "desktop",
+		type: "toolbar",
 		frame: true,
 		resizable: false,
 		show: true,
 		webPreferences: {
 			nodeIntegration: true,
 			enableRemoteModule: true,
-			webSecurity: false
+			//webSecurity: false
 		},
 		minimizable: false,
 		maximizable: false,
@@ -167,25 +174,31 @@ async function createSuspensionWindow() {
 	});
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
-		suspensionWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile")
+		//await suspensionWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile")
+		suspensionWindow.loadURL('http://www.baidu.com');
+		console.warn(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile");
 
 	} else {
 		// Load the index.html when not in development
 		//suspensionWindow.loadURL('app://./index.html#/sendfile')
-		suspensionWindow.loadURL('https://www.baidu.com')
+
+		suspensionWindow.loadURL('https://www.baidu.com');
 	}
 	suspensionWindow.once('ready-to-show', () => {
 		//if (configs.token)
 		suspensionWindow.show();
 	});
+	suspensionWindow.webContents.on("did-fail-load", function () {
+		dialog.showMessageBox("did-fail-load");
+	})
 
 	if (configs.postion) {
 		suspensionWindow.setPosition(configs.postion.x, configs.postion.y, true);
 	}
 
-	//if (!process.env.IS_TEST)
-	suspensionWindow.openDevTools();
-	suspensionWindow.webContents.openDevTools()
+	if (!process.env.IS_TEST)
+		suspensionWindow.openDevTools();
+	//suspensionWindow.webContents.openDevTools()
 
 	// suspensionWindow.on("", function () {
 	// 	console.warn("focus");
@@ -232,24 +245,24 @@ ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 });
 //基本信息填写完成
 ipcMain.on("init-completed", (event, arg) => {
-	suspensionWindow.show();
+	//suspensionWindow.show();
 });
 
 ipcMain.on("ShowWindow", () => {
-	if (process.platform == "win32")
-		suspensionWindow.setResizable(true)
-	suspensionWindow.setSize(400, 600, true);
-	if (process.platform == "win32")
-		suspensionWindow.setResizable(false)
+	// if (process.platform == "win32")
+	// 	mainWin.setResizable(true)
+	mainWin.setSize(400, 600, true);
+	// if (process.platform == "win32")
+	// 	mainWin.setResizable(false)
 
 });
 ipcMain.on("ShowMiniWindow", () => {
 	//console.warn("ShowMiniWindow");
-	if (process.platform == "win32")
-		suspensionWindow.setResizable(true)
-	suspensionWindow.setSize(100, 40, true);
-	if (process.platform == "win32")
-		suspensionWindow.setResizable(false)
+	// if (process.platform == "win32")
+	// 	mainWin.setResizable(true)
+	mainWin.setSize(100, 40, true);
+	// if (process.platform == "win32")
+	// 	mainWin.setResizable(false)
 
 });
 

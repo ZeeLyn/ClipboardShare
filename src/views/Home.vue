@@ -1,40 +1,15 @@
 <template>
     <div class="home">
-        <!-- <Header v-if="!showInit"></Header> -->
-        <router-link to="/sendfile">SENDFILE</router-link>
-        <div class="config">
-            <div class="group">
-                <label>您的显示昵称:</label>
-                <span v-if="!nick_name_editing">{{ nick_name }}</span>
-                <input
-                    v-if="nick_name_editing"
-                    type="text"
-                    placeholder="请输入昵称"
-                    v-model="nick_name"
-                />
-            </div>
-            <div class="group">
-                <label>连接验证秘钥:</label>
-                <span v-if="!token_editing">******</span>
-                <input
-                    v-if="token_editing"
-                    type="text"
-                    placeholder="请输入秘钥"
-                    v-model="token"
-                />
-            </div>
-            <div class="group">
-                <label>文件保存目录:</label>
-                <span>{{ folder }}</span>
-            </div>
-        </div>
-        <input
+        <SendFile v-show="!showInit" ref="sf"></SendFile>
+        <!-- <router-link to="/sendfile">SENDFILE</router-link> -->
+
+        <!-- <input
             type="text"
             placeholder="连接要共享剪切板的电脑IP"
             v-model="host"
         />
         <input type="text" placeholder="秘钥" v-model="connection_token" />
-        <input type="button" value="连接" @click="connect_to_server" />
+        <input type="button" value="连接" @click="connect_to_server" /> -->
 
         <div class="mask" v-if="showInit">
             <div class="container">
@@ -43,7 +18,7 @@
                     <input
                         type="text"
                         placeholder="请输入秘钥"
-                        v-model="token"
+                        v-model="config.token"
                     />
                 </div>
                 <div class="group">
@@ -52,7 +27,7 @@
                         <input
                             type="text"
                             placeholder="请选择接收文件默认保存目录"
-                            v-model="folder"
+                            v-model="config.save_file_dir"
                             readonly="readonly"
                         />
                         <span @click="OnChooseFolder">选择</span>
@@ -66,24 +41,23 @@
 
 <script>
 const { ipcRenderer, remote } = require("electron");
-//import Header from "@/components/Header.vue";
+import SendFile from "@/components/SendFile.vue";
+
 import config from "../lib/config.js";
 
 export default {
     name: "Home",
     components: {
-        //Header,
+        SendFile,
     },
     data() {
         return {
             host: "127.0.0.1",
             connection_token: "",
             showInit: false,
-            nick_name: "",
-            nick_name_editing: false,
-            token: "",
-            token_editing: false,
-            folder: "",
+            config: null,
+            showSettings: false,
+            showConnect: false,
         };
     },
     mounted() {
@@ -100,40 +74,33 @@ export default {
             console.error("连接错误", err);
             remote.dialog.showErrorBox("错误", err);
         });
-        this.conf = config.GetConfig();
-        this.token = this.conf.token;
-        this.nick_name = this.conf.nick_name;
-        this.token = this.conf.token;
-        this.folder = this.conf.save_file_dir;
-        if (this.token) return;
+        this.config = config.GetConfig();
+        // this.token = this.conf.token;
+        // this.nick_name = this.conf.nick_name;
+        // this.token = this.conf.token;
+        // this.folder = this.conf.save_file_dir;
+        if (this.config.token) return;
         this.showInit = true;
+
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
             this.folder = folder;
         });
     },
     methods: {
-        connect_to_server() {
-            console.warn(this.host);
-            ipcRenderer.send(
-                "connect_to_server",
-                this.host,
-                this.connection_token
-            );
-        },
         SaveConfig() {
-            if (!this.token) {
+            if (!this.config.token) {
                 remote.dialog.showErrorBox("错误", "请输入秘钥");
                 return;
             }
-            if (!this.folder) {
+            if (!this.config.save_file_dir) {
                 remote.dialog.showErrorBox("错误", "请选择文件默认保存目录！");
                 return;
             }
-            this.conf.token = this.token;
-            this.conf.save_file_dir = this.folder;
-            config.ModifyConfig(this.conf);
+
+            config.ModifyConfig(this.config);
             this.showInit = false;
             ipcRenderer.send("init-completed");
+            this.$refs.sf.OnShow();
         },
         OnChooseFolder() {
             ipcRenderer.send("ChooseSaveFileFolder");
@@ -143,8 +110,8 @@ export default {
 </script>
 <style scoped>
 .home {
-    width: 400px;
     color: #333;
+    height: 100%;
 }
 .config * {
     color: #fff;

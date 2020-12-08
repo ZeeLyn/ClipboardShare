@@ -45,6 +45,10 @@ export default {
             WebSocketClientHandlers.Connection(config, host, 9990, conf.uid, token, conf.nick_name);
         });
 
+        ipcMain.on("stop_connect", () => {
+            WebSocketClientHandlers.Disconnect();
+        })
+
         ipcMain.on("send_files", (event, files, to) => {
             var body = { files, to };
             //console.warn("发送文件", { files, to });

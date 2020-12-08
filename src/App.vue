@@ -32,7 +32,6 @@ export default {
 }
 html,
 body {
-    background: #1e1e1e;
     height: 100%;
 }
 #app {
@@ -44,14 +43,15 @@ body {
     font-size: 14px;
     height: 100%;
 }
-input[type="text"] {
+input[type="text"],
+input[type="password"] {
     background: none;
     border: 1px #ccc solid;
     color: #fff;
-    padding: 10px 6px;
+    padding: 7px 10px;
     outline: none;
-    color: #000;
-    min-width: 200px;
+    font-size: 12px;
+    outline: none;
 }
 
 input[type="button"] {
@@ -59,8 +59,11 @@ input[type="button"] {
     border: none;
     border-radius: 0;
     color: #fff;
-    margin-top: 10px;
-    padding: 10px 0;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+    border: 1px #ccc solid;
+    cursor: pointer;
 }
 
 #nav {

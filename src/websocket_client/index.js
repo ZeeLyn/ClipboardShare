@@ -21,9 +21,9 @@ WebSocketClientProcess.on("message", function (msg) {
             //var img = nativeImage.createFromPath(msg.body);
             clipboard.writeImage(img, "clipboard");
             break;
-        case "connect":
-            console.warn("connect");
-            mainWindow.webContents.send("OnConnect");
+        case "connected":
+            console.warn("connected", msg);
+            mainWindow.webContents.send("OnConnect", msg.body);
             break;
         case "disconnect":
             console.warn("disconnect");
@@ -42,6 +42,9 @@ module.exports = {
         _config = conf;
         //console.warn(conf.GetConfig());
         WebSocketClientProcess.send({ type: "Connect", payload: { host, port, id, token, name, save_file_folder: conf.GetConfig().save_file_dir } });
+    },
+    Disconnect: () => {
+        WebSocketClientProcess.send({ type: "stop_connect" });
     },
     SetWindow: (mainWin, fileWin) => { mainWindow = mainWin, fileWindow = fileWin },
     SendMessage: (message) => {

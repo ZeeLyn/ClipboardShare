@@ -24,16 +24,20 @@ WebSocketServerProcess.on("message", function (msg) {
             break;
         //用户连接到服务器是通知
         case "OnUserJoin":
-            fileWindow.webContents.send("OnUserJoin", msg.body);
+            //fileWindow.webContents.send("OnUserJoin", msg.body);
             mainWindow.webContents.send("OnUserJoin", msg.body);
+            break;
+        case "OnUserLeave":
+            //fileWindow.webContents.send("OnUserJoin", msg.body);
+            mainWindow.webContents.send("OnUserLeave", msg.body);
             break;
         //传输进度
         case "OnProcessChanged":
-            fileWindow.webContents.send("OnProcessChanged", msg.body);
+            mainWindow.webContents.send("OnProcessChanged", msg.body);
             break;
         case "OnAbort":
-            console.warn("OnAbort", msg.body);
-            fileWindow.webContents.send("OnAbort", msg.body);
+            //console.warn("OnAbort", msg.body);
+            mainWindow.webContents.send("OnAbort", msg.body);
             break;
     }
 });

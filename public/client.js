@@ -9,14 +9,15 @@ class WebSocketClient {
         // const io = require('socket.io-client');
         this.socket = require('socket.io-client')(`http://${host}:${port}`, {
             reconnectionDelay: 1000 * 5,
-            query: { token, name, id }
+            query: { token, name, id },
+            autoConnect: false
         });
 
 
         //console.warn("连接到：", `http://${host}:${port}`);
         this.socket.on("connect", () => {
             //console.warn("client:连接成功");
-            process.send({ type: "connect", body: "" });
+            process.send({ type: "connected", body: host });
         });
         this.socket.on("disconnect", (e) => {
             //console.warn("disconnect", e);
@@ -40,6 +41,7 @@ class WebSocketClient {
         this.socket.on("clipboard-image-changed", data => {
             process.send({ type: "clipboard-image", body: data });
         });
+        this.socket.open();
         var _ = this;
         ss(this.socket).on("receive-file", (stream, data) => {
             var filename = path.basename(data.name);
@@ -77,7 +79,11 @@ process.on('message', (m) => {
                 break;
             }
             case "SendMessage":
-                tcpClient.SendMessage(m.payload.message);
+                //tcpClient.SendMessage(m.payload.message);
+                break;
+            case "stop_connect":
+                console.warn(m);
+                client.socket.close();
                 break;
             default:
                 throw new Error('Unrecognized message received by tcp client');
