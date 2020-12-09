@@ -14,7 +14,10 @@ export default {
                 nick_name: os.hostname(),
                 save_file_dir: path.resolve("./"),
                 token: "",
-                postion: null
+                postion: null,
+                connect_info: {
+                    host: "",
+                }
             };
             fs.writeFileSync(configFileName, JSON.stringify(config));
             return config;

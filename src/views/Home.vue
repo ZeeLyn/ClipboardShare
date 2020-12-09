@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <SendFile v-show="!showInit" ref="sf"></SendFile>
+        <SendFile v-show="!showInit" ref="sf" :config="config"></SendFile>
         <!-- <router-link to="/sendfile">SENDFILE</router-link> -->
 
         <!-- <input
@@ -18,7 +18,7 @@
                     <input
                         type="text"
                         placeholder="请输入秘钥"
-                        v-model="config.token"
+                        v-model="server_token"
                     />
                 </div>
                 <div class="group">
@@ -27,7 +27,7 @@
                         <input
                             type="text"
                             placeholder="请选择接收文件默认保存目录"
-                            v-model="config.save_file_dir"
+                            v-model="save_file_dir"
                             readonly="readonly"
                         />
                         <span @click="OnChooseFolder">选择</span>
@@ -43,7 +43,7 @@
 const { ipcRenderer, remote } = require("electron");
 import SendFile from "@/components/SendFile.vue";
 
-import config from "../lib/config.js";
+import conf from "../lib/config.js";
 
 export default {
     name: "Home",
@@ -52,12 +52,12 @@ export default {
     },
     data() {
         return {
-            host: "127.0.0.1",
-            connection_token: "",
             showInit: false,
             config: null,
             showSettings: false,
             showConnect: false,
+            server_token:"",
+            save_file_dir:""
         };
     },
     mounted() {
@@ -74,30 +74,45 @@ export default {
             console.error("连接错误", err);
             remote.dialog.showErrorBox("错误", err);
         });
-        this.config = config.GetConfig();
+        this.config = conf.GetConfig();
         // this.token = this.conf.token;
         // this.nick_name = this.conf.nick_name;
         // this.token = this.conf.token;
         // this.folder = this.conf.save_file_dir;
+
+
+
         if (this.config.token) return;
         this.showInit = true;
 
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
-            this.folder = folder;
+            this.save_file_dir = folder;
         });
+        
+    },
+    watch:{
+        config:{
+            handler:(newVal)=>{
+                //监听配置是否修改，自动保存
+                conf.ModifyConfig(newVal);
+            },
+            deep:true
+        }
     },
     methods: {
         SaveConfig() {
-            if (!this.config.token) {
+            if (!this.server_token) {
                 remote.dialog.showErrorBox("错误", "请输入秘钥");
                 return;
             }
-            if (!this.config.save_file_dir) {
+            if (!this.save_file_dir) {
                 remote.dialog.showErrorBox("错误", "请选择文件默认保存目录！");
                 return;
             }
 
-            config.ModifyConfig(this.config);
+            //conf.ModifyConfig(this.config);
+            this.config.token=this.server_token;
+            this.config.save_file_dir=this.save_file_dir;
             this.showInit = false;
             ipcRenderer.send("init-completed");
             this.$refs.sf.OnShow();
@@ -149,8 +164,9 @@ export default {
 .mask .container .group div {
     display: flex;
 }
-.mask .container .group div input {
+input[type="text"] {
     flex: 1;
+    color: #000 !important;
 }
 .mask .container .group div span {
     margin: 0 0 0 5px;

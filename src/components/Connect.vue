@@ -38,10 +38,12 @@ const { ipcRenderer } = require("electron");
 
 export default {
     name: "Connect",
-    props: {},
+    props: {
+        config: { type: Object, value: null }
+    },
     data() {
         return {
-            host: "127.0.0.1",
+            host: "",
             connection_token: "",
             connect_info: {
                 status: 0,
@@ -60,10 +62,12 @@ export default {
         //     conf.save_file_dir = folder;
         //     config.ModifyConfig(conf);
         // });
+        this.host=this.config.connect_info.host;
         ipcRenderer.on("OnConnect", (evt, host) => {
             console.warn("ok", host);
             this.connect_info.status = 1;
             this.connect_info.host = host;
+            this.config.connect_info.host=host;
         });
         ipcRenderer.on("OnDisconnect", () => {
             this.connect_info.status = 0;
@@ -90,10 +94,9 @@ export default {
 <style scoped>
 .form {
     display: flex;
-
     border: 1px #666 dashed;
     padding: 15px;
-    margin: 10px 15px;
+    margin: 10px 10px;
     flex-direction: column;
     align-items: center;
 }
@@ -116,7 +119,7 @@ export default {
     margin: 0 3px 0 0;
 }
 .stop_connect {
-    background: #ff0000;
+    background: #8f2222;
     cursor: pointer;
     width: 120px;
     padding: 5px 0;

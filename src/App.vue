@@ -55,7 +55,7 @@ input[type="password"] {
 }
 
 input[type="button"] {
-    background: #2c3e50;
+    background: #338ef7;
     border: none;
     border-radius: 0;
     color: #fff;

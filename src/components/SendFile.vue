@@ -1,5 +1,6 @@
 <template>
     <div class="sendfile">
+        <img src="../assets/close.png" v-if="showSettings" class="close-icon" @click="OnCloseSettings">
         <div
             class="suspension-container"
             v-if="!show"
@@ -20,13 +21,14 @@
                 <div class="menu">
                     <img class="menu-icon" src="../assets/menu.png" />
                     <ul class="menu-items">
-                        <li>设置</li>
+                        <li @click="OpenSettings">设置</li>
                         <li>连接到其他服务器</li>
                     </ul>
                 </div>
             </div>
             <Settings :config="config" v-if="showSettings"></Settings>
-            <Connect></Connect>
+            <Connect :config="config"></Connect>
+            <h6 v-if="clients && clients.length > 0">连接到我的</h6>
             <div class="client-list" v-if="clients && clients.length > 0">
                 <div
                     v-for="client in clients"
@@ -43,6 +45,7 @@
                     @dragleave="dragleave"
                     v-on:drop="onDrop"
                     :data-client-id="client.id"
+                    title="拖入文件给这台电脑发送文件"
                 >
                     <div class="client-info">
                         {{ client.nick_name }}
@@ -112,7 +115,7 @@ export default {
         Connect,
     },
     props: {
-        msg: String,
+         config: { type: Object, value: null }
     },
     data() {
         return {
@@ -205,6 +208,12 @@ export default {
             );
     },
     methods: {
+        OpenSettings(){
+            this.showSettings=true
+        },
+        OnCloseSettings(){
+            this.showSettings=false;
+        },
         OnShow() {
             this.show = true;
             ipcRenderer.send("ShowWindow");
@@ -274,6 +283,7 @@ export default {
     border-radius: 12px;
     overflow: hidden;
 }
+.close-icon{ position: absolute; top: 10px; right: 10px; width: 25px; cursor: pointer; z-index: 9999;}
 .suspension-container {
     width: 100px;
     height: 40px;
@@ -287,7 +297,7 @@ export default {
 }
 .suspension-container .p {
     flex: 1;
-    background: #2d2d2d;
+    background: #3a3a3a;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -314,14 +324,13 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #1e1e1e;
 }
 .header {
     display: flex;
     justify-content: center;
     padding: 10px 0;
     border-bottom: 1px #2d2d2d solid;
-    background: #1e1e1e;
+    background: #252525;
 }
 .header img {
     width: 20px;
@@ -331,7 +340,7 @@ export default {
 }
 .header b {
     flex: 1;
-    margin-right: 25px;
+    margin-left: 15px;
     font-size: 15px;
     color: #fff;
     -webkit-app-region: drag;
@@ -353,7 +362,7 @@ export default {
     color: #fff;
     font-size: 12px;
     display: none;
-    z-index: 9999;
+    z-index: 2;
     border: 1px #eee solid;
 }
 
@@ -371,6 +380,13 @@ export default {
     background: rgb(53, 156, 216);
     color: #fff;
 }
+
+h6 {
+    color: #eee;
+    font-size: 11px;
+    font-weight: normal;
+    margin-top: 15px;
+}
 .client-list,
 .no-client {
     flex: 1;
@@ -378,7 +394,7 @@ export default {
     padding: 5px 0;
     display: flex;
     flex-direction: column;
-    background: #1e1e1e;
+    background: #252525;
 }
 .no-client {
     align-items: center;
@@ -386,10 +402,11 @@ export default {
     color: #666;
 }
 .client-item {
-    margin: 5px;
-    padding: 10px;
+    margin: 5px 10px;
+    padding: 10px 0;
     color: #fff;
     background: #2d2d2d;
+    border: 1px #666 dashed;
 }
 
 .forbidden-childe-pointer-events * {
@@ -402,11 +419,11 @@ export default {
 }
 
 .file-list .file-item {
-    background: #333;
     margin-top: 5px;
     font-size: 12px;
     padding: 5px 0;
 }
+.file-list .file-item:hover{background: #252525;}
 .file-list .file-item .file-info {
     display: flex;
     justify-content: space-between;
@@ -418,20 +435,21 @@ export default {
     margin-right: 5px;
 }
 .file-list .file-item .file-info div img {
-    width: 15px;
-    height: 15px;
+    width: 13px;
+    height: 13px;
     cursor: pointer;
     margin-left: 10px;
 }
 .file-list .file-item .progress {
-    border: 1px #eee solid;
-    height: 15px;
-    font-size: 10px;
+
+    height: 12px;
+    font-size: 8px;
     margin: 2px 5px 0 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    background: #333;
 }
 .file-list .file-item .progress .progress-bar {
     position: absolute;
@@ -455,7 +473,8 @@ export default {
     align-items: center;
 }
 .dragenter {
-    background: rgb(38, 252, 145);
-    color: #333;
+    background: rgb(44, 151, 98);
+    color: #fff;
+    border: 1px #fff dashed;
 }
 </style>
