@@ -15,6 +15,7 @@ export default {
                 save_file_dir: path.resolve("./"),
                 token: "",
                 postion: null,
+                enable: true,
                 connect_info: {
                     host: "",
                 }

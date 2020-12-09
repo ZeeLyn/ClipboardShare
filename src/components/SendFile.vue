@@ -1,5 +1,6 @@
 <template>
     <div class="sendfile">
+        <Settings :config="config" v-if="showSettings"></Settings>
         <img src="../assets/close.png" v-if="showSettings" class="close-icon" @click="OnCloseSettings">
         <div
             class="suspension-container"
@@ -26,7 +27,7 @@
                     </ul>
                 </div>
             </div>
-            <Settings :config="config" v-if="showSettings"></Settings>
+          
             <Connect :config="config"></Connect>
             <h6 v-if="clients && clients.length > 0">连接到我的</h6>
             <div class="client-list" v-if="clients && clients.length > 0">
@@ -171,20 +172,21 @@ export default {
             if (!file) return;
             file.abort = true;
         });
-        var _ = this;
+        //var _ = this;
         let trayMenuTemplate = [
-            {
-                label: "设置",
-                click: function () {
-                    ipcRenderer.send("show_main_window");
-                },
-            },
-            {
-                label: "我分享的电脑",
-                click: function () {
-                    _.OnShow();
-                },
-            },
+            // {
+            //     label: "设置",
+            //     click: function () {
+            //         this.showSettings=true;
+            //         _.OnShow();
+            //     },
+            // },
+            // {
+            //     label: "我分享的电脑",
+            //     click: function () {
+            //         _.OnShow();
+            //     },
+            // },
             {
                 label: "退出",
                 click: function () {
@@ -286,7 +288,7 @@ export default {
 .close-icon{ position: absolute; top: 10px; right: 10px; width: 25px; cursor: pointer; z-index: 9999;}
 .suspension-container {
     width: 100px;
-    height: 40px;
+    height: 32px;
     position: fixed;
     left: 0;
     top: 0;
@@ -308,7 +310,7 @@ export default {
 }
 .suspension-container .move-container {
     -webkit-app-region: drag;
-    background: #fff;
+    background: #888;
     width: 30px;
     height: 100%;
     cursor: move;
@@ -317,13 +319,14 @@ export default {
     justify-content: center;
 }
 .suspension-container .move-container img {
-    width: 24px;
+    width: 20px;
     pointer-events: none;
 }
 .container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    background: #252525;
 }
 .header {
     display: flex;

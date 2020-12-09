@@ -62,5 +62,12 @@ export default {
                 type: "abort-send", body: { client, fileid }
             });
         });
+
+        ipcMain.on("SetServerToken", (evt, token) => {
+            WebSocketServerHandlers.SetServerToken(token);
+        });
+    },
+    SetStatus: (status) => {
+        WebSocketServerHandlers.SetStatus(status);
     }
 }

@@ -88,7 +88,9 @@ export default {
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
             this.save_file_dir = folder;
         });
-        
+        ipcRenderer.on("SetShareStatus",(event,status)=>{
+            this.config.enable=status;
+        })
     },
     watch:{
         config:{
@@ -114,8 +116,10 @@ export default {
             this.config.token=this.server_token;
             this.config.save_file_dir=this.save_file_dir;
             this.showInit = false;
-            ipcRenderer.send("init-completed");
-            this.$refs.sf.OnShow();
+            ipcRenderer.send("SetServerToken",this.server_token);
+             this.$refs.sf.OnShow();
+            //ipcRenderer.send("init-completed");
+           
         },
         OnChooseFolder() {
             ipcRenderer.send("ChooseSaveFileFolder");
@@ -147,6 +151,8 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    border-radius: 20px;
+    -webkit-app-region: drag;
 }
 .mask .container {
     background: #fff;
@@ -154,7 +160,8 @@ export default {
     border-radius: 20px;
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 320px;
+    -webkit-app-region:none;
 }
 .mask .container .group {
     display: flex;

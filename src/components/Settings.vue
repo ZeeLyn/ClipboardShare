@@ -16,6 +16,7 @@
                     type="password"
                     placeholder="请输入秘钥"
                     v-model="token"
+                    maxlength="5"
                 />
             </div>
             <div class="group">
@@ -38,6 +39,7 @@
     </div>
 </template>
 <script>
+import config from '../lib/config';
 // const { ipcRenderer } = require("electron");
 // import config from "../lib/config.js";
 const { ipcRenderer, remote } = require("electron");
@@ -57,6 +59,9 @@ export default {
         ipcRenderer.on("OnChangeSaveFileFolder", (event, folder) => {
             this.folder = folder;
         });
+        this.nick_name=this.config.nick_name;
+        this.token=this.config.token;
+        this.folder=this.config.save_file_dir;
     },
     methods: {
         OnChooseFolder() {
@@ -68,6 +73,20 @@ export default {
                 remote.dialog.showErrorBox("错误","请输入昵称！");
                 return;
             }
+            if(!this.token)
+            {
+                remote.dialog.showErrorBox("错误","请输入秘钥！");
+                return;
+            }
+            if(!this.folder)
+            {
+                remote.dialog.showErrorBox("错误","请选择目录！");
+                return;
+            }
+            this.config.nick_name=this.nick_name;
+            this.config.token=this.token;
+            this.config.save_file_dir=this.folder;
+            this.$parent.OnCloseSettings();
         }
     },
 };

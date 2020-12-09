@@ -11,13 +11,18 @@ var mainWindow = null;
 
 var config = null;
 
+
 WebSocketServerProcess.on("message", function (msg) {
     //console.warn(msg);
     switch (msg.type) {
         case "clipboard-text":
+            if (!config.enable)
+                return;
             clipboard.writeText(msg.body);
             break;
         case "clipboard-image":
+            if (!config.enable)
+                return;
             var buffer = Buffer.from(msg.body);
             var img = nativeImage.createFromBuffer(buffer);
             clipboard.writeImage(img);
@@ -56,5 +61,11 @@ module.exports = {
     },
     SendMessage: (msg) => {
         WebSocketServerProcess.send({ type: "SEND-MESSAGE", payload: { ...msg } });
+    },
+    SetServerToken: (token) => {
+        WebSocketServerProcess.send({ type: "SetServerToken", payload: token });
+    },
+    SetStatus: (enable) => {
+        config.enable = enable;
     }
 };

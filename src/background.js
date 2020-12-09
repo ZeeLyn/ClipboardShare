@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, screen, ipcMain, dialog, Tray, Menu } from 'electron'
+import { app, protocol, BrowserWindow, screen, ipcMain, dialog, Tray, Menu, nativeImage, Point } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 var path = require('path');
@@ -9,6 +9,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 var appTray = null;
 import program from "./program.js";
 var suspensionWindow = null;
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
 	{ scheme: 'app', privileges: { secure: true, standard: true } }
@@ -19,17 +20,19 @@ async function createWindow() {
 	// Create the browser window.
 
 	const win = mainWin = new BrowserWindow({
-		width: configs.token ? 1000 : 2000,
-		height: configs.token ? 400 : 1500,
+		title: "局域网剪切板分享",
+		icon: nativeImage.createFromPath(isDevelopment ? path.join("./public", "app.png") : path.join(cwd, "app.asar/app.png")),
+		width: configs.token ? 100 : 400,
+		height: configs.token ? 32 : 600,
 		darkTheme: true,
 		show: true,
-		frame: configs.token ? false : true,
-		skipTaskbar: true,
+		frame: false,
+		skipTaskbar: configs.token ? true : false,
 		transparent: true,
-		alwaysOnTop: true,
-		// minimizable: false,
-		// maximizable: false,
-		// closable: false,
+		alwaysOnTop: configs.token ? true : false,
+		minimizable: false,
+		maximizable: false,
+		closable: false,
 		webPreferences: {
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -37,6 +40,9 @@ async function createWindow() {
 			enableRemoteModule: true
 		}
 	})
+	if (configs.postion) {
+		win.setPosition(configs.postion.x, configs.postion.y);
+	}
 	win.on('ready-to-show', () => {
 		//createSuspensionWindow();
 	});
@@ -46,11 +52,15 @@ async function createWindow() {
 		win.hide();
 		win.setSkipTaskbar(true);
 	});
-
+	win.on("moved", (e) => {
+		var p = e.sender.getPosition();
+		configs.postion = { x: p[0], y: p[1] };
+		config.ModifyConfig(configs);
+	});
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
 		await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
-		if (!process.env.IS_TEST) win.webContents.openDevTools()
+		//if (!process.env.IS_TEST) win.webContents.openDevTools()
 	} else {
 		createProtocol('app')
 		// Load the index.html when not in development
@@ -107,18 +117,16 @@ app.on('ready', async () => {
 					buttons: ["ok"]
 				});
 			}
-		}, {
-			label: "设置",
-			click: function () {
-				mainWin.show();
-				mainWin.setSkipTaskbar(false);
-			}
 		}
 		, {
 			label: "暂停分享",
 			type: "checkbox",
+			checked: !configs.enable,
 			click: function (e) {
-				console.warn(e.checked);
+				//console.warn(e);
+				configs.enable = !e.checked;
+				program.SetStatus(!e.checked);
+				mainWin.webContents.send("SetShareStatus", !e.checked);
 			}
 		}
 		, {
@@ -129,10 +137,9 @@ app.on('ready', async () => {
 		}];
 	const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
 	appTray.setContextMenu(contextMenu);
-	appTray.on("double-click", () => {
-		mainWin.show();
-		mainWin.setSkipTaskbar(false);
-	});
+	// appTray.on("double-click", () => {
+	// 	ShowBigWindow();
+	// });
 })
 
 
@@ -151,89 +158,6 @@ if (isDevelopment) {
 	}
 }
 
-function createSuspensionWindow() {
-	suspensionWindow = new BrowserWindow({
-		title: "发送文件",
-		width: 1300, height: 600,
-		type: "toolbar",
-		frame: true,
-		resizable: false,
-		show: true,
-		webPreferences: {
-			nodeIntegration: true,
-			enableRemoteModule: true,
-			//webSecurity: false
-		},
-		minimizable: false,
-		maximizable: false,
-		closable: false,
-		transparent: false,
-		alwaysOnTop: true,
-		skipTaskbar: true,
-		titleBarStyle: "hidden"
-	});
-
-	if (process.env.WEBPACK_DEV_SERVER_URL) {
-		//await suspensionWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile")
-		suspensionWindow.loadURL('http://www.baidu.com');
-		console.warn(process.env.WEBPACK_DEV_SERVER_URL + "#/sendfile");
-
-	} else {
-		// Load the index.html when not in development
-		//suspensionWindow.loadURL('app://./index.html#/sendfile')
-
-		suspensionWindow.loadURL('https://www.baidu.com');
-	}
-	suspensionWindow.once('ready-to-show', () => {
-		//if (configs.token)
-		suspensionWindow.show();
-	});
-	suspensionWindow.webContents.on("did-fail-load", function () {
-		dialog.showMessageBox("did-fail-load");
-	})
-
-	if (configs.postion) {
-		suspensionWindow.setPosition(configs.postion.x, configs.postion.y, true);
-	}
-
-	if (!process.env.IS_TEST)
-		suspensionWindow.openDevTools();
-	//suspensionWindow.webContents.openDevTools()
-
-	// suspensionWindow.on("", function () {
-	// 	console.warn("focus");
-	// });
-
-	// const size = screen.getPrimaryDisplay().workAreaSize;   //获取显示器的宽高
-	// const winSize = win.getSize();  //获取窗口宽高
-
-	// //设置窗口的位置 注意x轴要桌面的宽度 - 窗口的宽度
-	// win.setPosition(size.width - winSize[0], 100);
-
-
-	// let trayMenuTemplate = [
-	// 	{
-	// 		label: 'DEV',
-	// 		click: function () {
-	// 			suspensionWindow.webContents.openDevTools();
-	// 		}
-	// 	}];
-	// const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
-	// suspensionWindow.setMenu(contextMenu);
-	suspensionWindow.on("moved", (e) => {
-		//console.warn(e.sender.getPosition());
-		var p = e.sender.getPosition();
-		configs.postion = { x: p[0], y: p[1] };
-		config.ModifyConfig(configs);
-	});
-
-}
-//将文件拖入悬浮窗
-ipcMain.on("drag_in_files", (event, arg) => {
-	if (suspensionWindow) {
-		//suspensionWindow.setSize(300, 300, true);
-	}
-});
 //选择文件保存目录
 ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 	dialog.showOpenDialog({ properties: ["openDirectory"] }).then(e => {
@@ -246,30 +170,47 @@ ipcMain.on("ChooseSaveFileFolder", (event, arg) => {
 //基本信息填写完成
 ipcMain.on("init-completed", (event, arg) => {
 	//suspensionWindow.show();
+	mainWin.flashFrame(false);
 });
 
-ipcMain.on("ShowWindow", () => {
-	// if (process.platform == "win32")
-	// 	mainWin.setResizable(true)
+function ShowBigWindow() {
+	if (process.platform == "win32")
+		mainWin.setResizable(true)
 	mainWin.setSize(400, 600, true);
-	// if (process.platform == "win32")
-	// 	mainWin.setResizable(false)
-
-});
-ipcMain.on("ShowMiniWindow", () => {
-	//console.warn("ShowMiniWindow");
-	// if (process.platform == "win32")
-	// 	mainWin.setResizable(true)
-	mainWin.setSize(100, 40, true);
-	// if (process.platform == "win32")
-	// 	mainWin.setResizable(false)
-
-});
-
-ipcMain.on("show_main_window", () => {
-	mainWin.show();
+	if (process.platform == "win32")
+		mainWin.setResizable(false)
+	mainWin.setAlwaysOnTop(false);
 	mainWin.setSkipTaskbar(false);
+
+	var postion = mainWin.getPosition();
+	let currentDisplay = screen.getDisplayNearestPoint({ x: postion[0], y: postion[1] });
+	let currentDisplaySize = currentDisplay.size;
+	//console.warn(postion, currentDisplay, screen.getAllDisplays());
+	if (postion[0] + (400 * currentDisplay.scaleFactor) > currentDisplaySize.width + currentDisplay.bounds.x) {
+		mainWin.setPosition(currentDisplaySize.width + currentDisplay.bounds.x - (400 * currentDisplay.scaleFactor), postion[1], true);
+	}
+
+}
+
+//打开大窗口
+ipcMain.on("ShowWindow", () => {
+	//console.warn("ShowWindow");
+	ShowBigWindow();
 });
+//打开浮层
+ipcMain.on("ShowMiniWindow", () => {
+	if (process.platform == "win32")
+		mainWin.setResizable(true)
+	mainWin.setSize(100, 32, true);
+	if (process.platform == "win32")
+		mainWin.setResizable(false)
+	mainWin.setAlwaysOnTop(true);
+	mainWin.setSkipTaskbar(true);
+	if (configs.postion)
+		mainWin.setPosition(configs.postion.x, configs.postion.y, true);
+});
+
+
 ipcMain.on("app_exit", () => {
 	app.exit();
 })

@@ -118,9 +118,10 @@ process.on('message', (m) => {
                         console.error("不支持的类型");
                         break;
                 }
-                break;
-            }
 
+                break;
+
+            }
             case 'STOP_SERVER': {
 
                 break;
